@@ -61,6 +61,9 @@ INSTALLED_APPS = [
     'apps.metrics',
     'apps.blockchain',
     'apps.ai_services',
+    'apps.api',
+    'apps.genai',
+    'apps.predictive',
 ]
 
 MIDDLEWARE = [
@@ -333,6 +336,9 @@ DATABASE_ENCRYPTION_KEY = env('DATABASE_ENCRYPTION_KEY', default='')
 
 # AI Services Configuration (Phase 5)
 ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY', default='')
+
+# ML Models Configuration (Phase 6)
+ML_MODELS_DIR = BASE_DIR / 'ml_models'
 
 # Blockchain Configuration (Phase 7)
 BLOCKCHAIN_NETWORK = env('BLOCKCHAIN_NETWORK', default='http://127.0.0.1:8545')

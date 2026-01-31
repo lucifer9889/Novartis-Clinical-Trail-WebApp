@@ -1,0 +1,184 @@
+/**
+ * Components CSS for Clinical Trial Control Tower
+ * Reusable UI components (GenAI Assistant, filters, widgets)
+ */
+
+/* ============================================
+   GENAI ASSISTANT PANEL
+   ============================================ */
+
+.genai-panel {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+/* Scrollbar for GenAI panel */
+.genai-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.genai-panel::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 2px;
+}
+
+/* GenAI header styling */
+.genai-panel .card-header small {
+    font-size: 0.7rem;
+}
+
+/* Suggestion Items */
+.suggestion-item {
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.suggestion-item:hover {
+    background-color: rgba(0, 102, 204, 0.08) !important;
+    transform: translateX(3px);
+}
+
+.suggestion-item .fs-sm {
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.suggestion-item small {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Evidence Cards */
+.evidence-card {
+    padding: 12px;
+    border-radius: 6px;
+    background-color: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
+
+.evidence-card:hover {
+    background-color: var(--white);
+    border-color: var(--primary-blue);
+    box-shadow: 0 2px 6px rgba(0, 102, 204, 0.1);
+}
+
+.evidence-card .fs-sm {
+    font-size: 0.8rem;
+    line-height: 1.3;
+}
+
+.evidence-card .badge {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+}
+
+.evidence-card small {
+    font-size: 0.7rem;
+    line-height: 1.2;
+}
+
+/* Risk Metrics */
+.risk-metric {
+    font-size: 0.875rem;
+}
+
+.risk-metric .fs-sm {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.risk-metric .progress {
+    background-color: var(--gray-200);
+    border-radius: 3px;
+}
+
+.risk-metric .progress-bar {
+    transition: width 0.6s ease;
+}
+
+.risk-metric small {
+    font-size: 0.7rem;
+    display: block;
+    margin-top: 4px;
+}
+
+/* GenAI Action Buttons */
+.btn-genai-action {
+    font-size: 0.75rem;
+    padding: 10px 12px;
+    line-height: 1.3;
+    text-align: left;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.btn-genai-action i {
+    vertical-align: middle;
+}
+
+.btn-genai-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Compact font size utility */
+.fs-sm {
+    font-size: 0.85rem;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 1200px) {
+    .genai-panel {
+        position: relative;
+        top: 0;
+        max-height: none;
+        overflow-y: visible;
+    }
+}
+
+@media (max-width: 768px) {
+    .suggestion-item,
+    .evidence-card {
+        padding: 10px;
+    }
+
+    .btn-genai-action {
+        font-size: 0.7rem;
+        padding: 8px 10px;
+    }
+}
+
+/* ============================================
+   ADDITIONAL COMPONENT UTILITIES
+   ============================================ */
+
+/* Card shadows for components */
+.component-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.2s ease;
+}
+
+.component-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Icon spacing in cards */
+.card-header i {
+    opacity: 0.9;
+}
+
+/* Badge sizing in components */
+.badge.fs-xs {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+}

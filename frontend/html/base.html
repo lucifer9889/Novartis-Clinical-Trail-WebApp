@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Trial Control Tower</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div class="wrapper">
+
+        <!-- Top Navbar: Brand + User -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center" href="index.html">
+                    <span class="logo-circle">N</span>
+                    Clinical Trial Control Tower
+                </a>
+                <div class="ms-auto d-flex align-items-center">
+                    <span class="text-muted me-3 d-none d-md-inline">
+                        <i class="fas fa-bell me-2"></i>
+                        <i class="fas fa-cog me-2"></i>
+                    </span>
+                    <i class="fas fa-user-circle fa-2x text-primary"></i>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Tab Navigation Bar -->
+        <div class="tab-header">
+            <div class="container-fluid px-0">
+                <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="trial-process-tab"
+                                data-bs-toggle="tab" data-bs-target="#trial-process"
+                                type="button" role="tab">
+                            Trial Process: Why It Breaks
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="role-visibility-tab"
+                                data-bs-toggle="tab" data-bs-target="#role-visibility"
+                                type="button" role="tab">
+                            Role-based Visibility
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="frontend-overview-tab"
+                                data-bs-toggle="tab" data-bs-target="#frontend-overview"
+                                type="button" role="tab">
+                            Frontend Overview
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="backend-process-tab"
+                                data-bs-toggle="tab" data-bs-target="#backend-process"
+                                type="button" role="tab">
+                            Backend Process
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="impact-scope-tab"
+                                data-bs-toggle="tab" data-bs-target="#impact-scope"
+                                type="button" role="tab">
+                            Impact & Future Scope
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="tab-content" id="mainTabsContent">
+
+                <!-- Tab 1: Trial Process -->
+                <div class="tab-pane fade show active" id="trial-process" role="tabpanel">
+                    <div class="container-fluid py-4">
+                        <h2>Trial Process: Why It Breaks</h2>
+                        <p class="text-muted">Process flow and pain points visualization</p>
+                        <!-- Content will be added in next prompts -->
+                    </div>
+                </div>
+
+                <!-- Tab 2: Role-based Visibility -->
+                <div class="tab-pane fade" id="role-visibility" role="tabpanel">
+                    <!-- 3-panel dashboard layout -->
+                    <div class="dashboard-container">
+                        <!-- Left Sidebar -->
+                        <div class="left-sidebar">
+                            <!-- Will be populated in next prompt -->
+                        </div>
+                        <!-- Main Dashboard Area -->
+                        <div class="main-dashboard-area">
+                            <!-- Will be populated in PROMPT 2 -->
+                        </div>
+                        <!-- Right Sidebar: GenAI Assistant -->
+                        <div class="right-sidebar">
+                            <!-- Will be populated in PROMPT 5 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Frontend Overview -->
+                <div class="tab-pane fade" id="frontend-overview" role="tabpanel">
+                    <div class="container-fluid py-4">
+                        <!-- Will be populated in PROMPT 3 -->
+                    </div>
+                </div>
+
+                <!-- Tab 4: Backend Process -->
+                <div class="tab-pane fade" id="backend-process" role="tabpanel">
+                    <div class="container-fluid py-4">
+                        <!-- Will be populated in PROMPT 4 -->
+                    </div>
+                </div>
+
+                <!-- Tab 5: Impact & Future Scope -->
+                <div class="tab-pane fade" id="impact-scope" role="tabpanel">
+                    <div class="container-fluid py-4">
+                        <h2>Impact & Future Scope</h2>
+                        <p class="text-muted">Platform benefits and roadmap</p>
+                        <!-- Content will be added in next prompts -->
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- jQuery (loaded first for DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="../js/main.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/charts.js"></script>
+
+</body>
+</html>

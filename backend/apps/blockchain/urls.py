@@ -1,7 +1,4 @@
-"""
-URL configuration for blockchain app.
-Handles data verification, audit trails (Phase 7).
-"""
+"""Blockchain API URLs."""
 
 from django.urls import path
 from . import views
@@ -9,7 +6,9 @@ from . import views
 app_name = 'blockchain'
 
 urlpatterns = [
-    # Blockchain endpoints (will be implemented in Phase 7)
-    # path('verify/<str:entity_type>/<str:entity_id>/', views.verify_data, name='verify_data'),
-    # path('audit-trail/<str:entity_id>/', views.audit_trail, name='audit_trail'),
+    path('stats/', views.blockchain_stats, name='blockchain-stats'),
+    path('verify/', views.verify_chain, name='verify-chain'),
+    path('history/', views.entity_history, name='entity-history'),
+    path('transactions/', views.recent_transactions, name='recent-transactions'),
+    path('verify-transaction/', views.verify_transaction, name='verify-transaction'),
 ]

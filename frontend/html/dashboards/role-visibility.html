@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role-based Visibility - CTCT</title>
+
+    <!-- Same head content as base.html -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header Section -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Clinical Trial Control Panel
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Study and Filter Dropdowns -->
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Study</label>
+                                <select class="form-select" id="studySelect">
+                                    <option selected>Study: NYS-GRE-293</option>
+                                    <option>Study: NYS-GRE-294</option>
+                                    <option>Study: NYS-GRE-295</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Pass 3</label>
+                                <select class="form-select">
+                                    <option selected>Pass 3</option>
+                                    <option>Pass 2</option>
+                                    <option>Pass 1</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Region: APAC</label>
+                                <select class="form-select">
+                                    <option selected>Region: APAC</option>
+                                    <option>Region: EMEA</option>
+                                    <option>Region: Americas</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Country: India</label>
+                                <select class="form-select">
+                                    <option selected>Country: India</option>
+                                    <option>Country: China</option>
+                                    <option>Country: Japan</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Site: All</label>
+                                <select class="form-select">
+                                    <option selected>Site: All</option>
+                                    <option>Site: 101</option>
+                                    <option>Site: 102</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex gap-2 mt-4">
+                                    <button class="btn btn-primary">
+                                        <i class="fas fa-filter me-1"></i> Apply
+                                    </button>
+                                    <button class="btn btn-secondary">
+                                        <i class="fas fa-redo me-1"></i> Reset Summary
+                                    </button>
+                                    <button class="btn btn-info">
+                                        <i class="fas fa-download me-1"></i> Download
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject Table Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Subject List</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="subjectTable" class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Sites</th>
+                                        <th>Subjects</th>
+                                        <th>Status</th>
+                                        <th>Forms</th>
+                                        <th>eMissing</th>
+                                        <th>Visit: Some Overdue, Some WI</th>
+                                        <th>End Date Sites (GVS, D/S, WI)</th>
+                                        <th>Total Patients</th>
+                                        <th>Manuscript</th>
+                                        <th>Missing Wi - 21 / 23</th>
+                                        <th>Data Entry Sites</th>
+                                        <th>Query Sites</th>
+                                        <th>99%+ Monitoring</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Row 1: 2-101 Completed -->
+                                    <tr>
+                                        <td>2-101</td>
+                                        <td>0-005</td>
+                                        <td>
+                                            <span class="status-dot status-success"></span>
+                                            <span class="ms-1">Completed</span>
+                                        </td>
+                                        <td>100%</td>
+                                        <td>WI 1</td>
+                                        <td>100.0%</td>
+                                        <td>95</td>
+                                        <td>58</td>
+                                        <td>96</td>
+                                        <td>75.15</td>
+                                        <td>63</td>
+                                        <td>99</td>
+                                        <td>93.5%</td>
+                                    </tr>
+                                    <!-- Row 2: 2-102 Suspended -->
+                                    <tr>
+                                        <td>2-102</td>
+                                        <td>0-010</td>
+                                        <td>
+                                            <span class="status-dot status-warning"></span>
+                                            <span class="ms-1">Suspended</span>
+                                        </td>
+                                        <td>95%</td>
+                                        <td>WI 1</td>
+                                        <td>98.0%</td>
+                                        <td>92</td>
+                                        <td>54</td>
+                                        <td>94</td>
+                                        <td>70.50</td>
+                                        <td>60</td>
+                                        <td>97</td>
+                                        <td>91.0%</td>
+                                    </tr>
+                                    <!-- Row 3: 3-201 Enrolled -->
+                                    <tr>
+                                        <td>3-201</td>
+                                        <td>0-015</td>
+                                        <td>
+                                            <span class="status-dot status-info"></span>
+                                            <span class="ms-1">Enrolled</span>
+                                        </td>
+                                        <td>88%</td>
+                                        <td>WI 2</td>
+                                        <td>87.5%</td>
+                                        <td>88</td>
+                                        <td>50</td>
+                                        <td>90</td>
+                                        <td>65.30</td>
+                                        <td>55</td>
+                                        <td>95</td>
+                                        <td>88.2%</td>
+                                    </tr>
+                                    <!-- Row 4: 3-202 Screening -->
+                                    <tr>
+                                        <td>3-202</td>
+                                        <td>0-020</td>
+                                        <td>
+                                            <span class="status-dot status-primary"></span>
+                                            <span class="ms-1">Screening</span>
+                                        </td>
+                                        <td>75%</td>
+                                        <td>WI 2</td>
+                                        <td>75.0%</td>
+                                        <td>80</td>
+                                        <td>45</td>
+                                        <td>85</td>
+                                        <td>60.10</td>
+                                        <td>50</td>
+                                        <td>92</td>
+                                        <td>85.5%</td>
+                                    </tr>
+                                    <!-- Row 5: 3-203 Withdrawn -->
+                                    <tr>
+                                        <td>3-203</td>
+                                        <td>0-025</td>
+                                        <td>
+                                            <span class="status-dot status-danger"></span>
+                                            <span class="ms-1">Withdrawn</span>
+                                        </td>
+                                        <td>50%</td>
+                                        <td>WI 3</td>
+                                        <td>50.0%</td>
+                                        <td>70</td>
+                                        <td>40</td>
+                                        <td>75</td>
+                                        <td>55.25</td>
+                                        <td>45</td>
+                                        <td>88</td>
+                                        <td>80.0%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        // Initialize DataTable with sorting and filtering
+        $(document).ready(function() {
+            $('#subjectTable').DataTable({
+                pageLength: 10,
+                order: [[0, 'asc']],
+                language: {
+                    search: "Filter subjects:"
+                }
+            });
+        });
+    </script>
+</body>
+</html>

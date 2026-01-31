@@ -51,15 +51,27 @@ urlpatterns = [
     # AI Services URLs (Phase 5)
     path('ai/', include('apps.ai_services.urls')),
 
-    # REST API endpoints
-    path('api/v1/', include([
-        path('', include('apps.core.urls')),
-        path('monitoring/', include('apps.monitoring.urls')),
-        path('safety/', include('apps.safety.urls')),
-        path('metrics/', include('apps.metrics.urls')),
-        path('blockchain/', include('apps.blockchain.urls')),
-        path('ai/', include('apps.ai_services.urls')),
-    ])),
+    # REST API endpoints (dedicated API app)
+    path('api/v1/', include('apps.api.urls')),
+
+    # GenAI API endpoints (Phase 5)
+    path('api/v1/genai/', include('apps.genai.urls')),
+
+    # Predictive AI endpoints (Phase 6)
+    path('api/v1/predictions/', include('apps.predictive.urls')),
+
+    # Blockchain API endpoints (Phase 7)
+    path('api/v1/blockchain/', include('apps.blockchain.urls')),
+
+    # REST API endpoints (app-specific - deprecated, use api app above)
+    # path('api/v1/', include([
+    #     path('', include('apps.core.urls')),
+    #     path('monitoring/', include('apps.monitoring.urls')),
+    #     path('safety/', include('apps.safety.urls')),
+    #     path('metrics/', include('apps.metrics.urls')),
+    #     path('blockchain/', include('apps.blockchain.urls')),
+    #     path('ai/', include('apps.ai_services.urls')),
+    # ])),
 ]
 
 # Serve media files in development

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Overview - CTCT</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+</head>
+<body>
+    <div class="container-fluid py-4">
+
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="mb-1">
+                    <i class="fas fa-tachometer-alt me-2 text-primary"></i>
+                    Frontend Overview
+                </h2>
+                <p class="text-muted mb-0">Personalized KPI Dashboard with Operational Metrics</p>
+            </div>
+        </div>
+
+        <!-- Section 1: Personalized KPI Dashboard -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <h5 class="section-title">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Personalized KPI Dashboard
+                </h5>
+            </div>
+
+            <!-- KPI Card: Study -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-flask me-1"></i>
+                            Study
+                        </h6>
+                        <h3 class="mb-0 text-primary">NYS-GRE-293</h3>
+                        <small class="text-muted">Phase 3 Trial</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Card: Region -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card kpi-card kpi-info">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-globe-asia me-1"></i>
+                            Region
+                        </h6>
+                        <h3 class="mb-0 text-primary">APAC</h3>
+                        <small class="text-muted">Asia-Pacific</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Card: Screened -->
+            <div class="col-md-2 col-sm-4">
+                <div class="card kpi-card kpi-warning">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-user-check me-1"></i>
+                            Screened
+                        </h6>
+                        <h3 class="mb-0">1,288</h3>
+                        <small class="text-muted">Patients</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Card: Enrolled (Highlighted) -->
+            <div class="col-md-2 col-sm-4">
+                <div class="card kpi-card kpi-success bg-success text-white">
+                    <div class="card-body">
+                        <h6 class="mb-2">
+                            <i class="fas fa-users me-1"></i>
+                            Enrolled
+                        </h6>
+                        <h3 class="mb-0">8,476</h3>
+                        <small>Active Patients</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Card: Sites -->
+            <div class="col-md-2 col-sm-4">
+                <div class="card kpi-card kpi-orange">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-hospital me-1"></i>
+                            Sites
+                        </h6>
+                        <h3 class="mb-0">103</h3>
+                        <small class="text-muted">Active Sites</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Operational Drill-Down and Timeline -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <h5 class="section-title">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Operational Drill-Down
+                </h5>
+            </div>
+
+            <!-- Operational Metrics Table -->
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="fas fa-list-check me-2"></i>
+                            Key Operational Metrics
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-circle-check text-success me-2"></i>
+                                        Rand or Randomized RX
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-success">99.99%</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-pills text-primary me-2"></i>
+                                        Dosed Subjects
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-success">99.47%</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                        Open Issues Throughout
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-warning text-dark">18.43%</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-circle-exclamation text-danger me-2"></i>
+                                        Issues Volume &gt; High
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-danger">3 sites</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-tasks text-info me-2"></i>
+                                        Data Compliance Rate
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-info">94.2%</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-clock text-secondary me-2"></i>
+                                        Avg Query Resolution (days)
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-secondary">7.2</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enrollment Timeline Chart -->
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-area me-2"></i>
+                            Enrollment Timeline (Last 6 Months)
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 250px;">
+                            <canvas id="enrollmentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Open Issue Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h5 class="section-title">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Open Issue Summary
+                </h5>
+            </div>
+
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-table me-2"></i>
+                                Issue Breakdown by Type
+                            </h6>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-download me-1"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>
+                                            <i class="fas fa-tag me-1"></i>
+                                            Issue Type
+                                        </th>
+                                        <th class="text-center">Count</th>
+                                        <th class="text-center">Avg Days Open</th>
+                                        <th class="text-center">Priority</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-calendar-xmark text-danger me-2"></i>
+                                            Missing Visits
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning text-dark">15</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-bold text-danger">12.5</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-danger">High</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-question-circle text-info me-2"></i>
+                                            Open Queries
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info">42</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-bold">8.3</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning text-dark">Medium</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-file-circle-xmark text-warning me-2"></i>
+                                            Missing Pages
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning text-dark">28</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-bold">6.7</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning text-dark">Medium</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-shield-halved text-success me-2"></i>
+                                            Protocol Deviations
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success">8</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-bold">4.1</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success">Low</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-vials text-secondary me-2"></i>
+                                            Lab Discrepancies
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary">12</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-bold">5.9</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success">Low</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Chart.js Script for Enrollment Timeline -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Enrollment Timeline Chart
+            const ctx = document.getElementById('enrollmentChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026', 'May 2026', 'Jun 2026'],
+                        datasets: [
+                            {
+                                label: 'Projected Enrollment',
+                                data: [100, 200, 350, 500, 700, 850],
+                                borderColor: '#0066CC',
+                                backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                                borderWidth: 2,
+                                borderDash: [8, 4],
+                                pointRadius: 4,
+                                pointBackgroundColor: '#0066CC',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                fill: false,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Actual Enrollment',
+                                data: [80, 180, 320, 480, 650, 800],
+                                borderColor: '#28A745',
+                                backgroundColor: 'rgba(40, 167, 69, 0.15)',
+                                borderWidth: 3,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#28A745',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                fill: true,
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    font: {
+                                        size: 12,
+                                        weight: '500'
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: '#ddd',
+                                borderWidth: 1,
+                                padding: 10,
+                                displayColors: true,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y + ' patients';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString();
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

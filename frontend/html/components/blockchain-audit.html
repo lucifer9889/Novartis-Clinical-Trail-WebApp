@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Audit Trail - CTCT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .blockchain-card {
+            border-left: 4px solid #0066CC;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .transaction-card {
+            border-left: 3px solid #28A745;
+            transition: all 0.3s ease;
+        }
+
+        .transaction-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+
+        .tx-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .verified-badge {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .chain-link {
+            border-left: 2px dashed #dee2e6;
+            padding-left: 20px;
+            margin-left: 20px;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2><i class="fas fa-link"></i> Blockchain Audit Trail</h2>
+                <p class="text-muted">Immutable proof of clinical trial events with cryptographic verification</p>
+            </div>
+        </div>
+
+        <!-- Blockchain Stats -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card blockchain-card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 text-center">
+                                <i class="fas fa-cube stat-icon"></i>
+                                <h6 class="mt-2">Total Blocks</h6>
+                                <h2 id="totalBlocks">--</h2>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <i class="fas fa-layer-group stat-icon"></i>
+                                <h6 class="mt-2">Latest Block</h6>
+                                <h2 id="latestBlock">#--</h2>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <i class="fas fa-check-circle stat-icon"></i>
+                                <h6 class="mt-2">Verification Rate</h6>
+                                <h2 id="verificationRate">--%</h2>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <i class="fas fa-shield-alt stat-icon"></i>
+                                <h6 class="mt-2">Chain Status</h6>
+                                <h2 id="chainStatus">
+                                    <i class="fas fa-sync fa-spin"></i>
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chain Verification -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-check-circle"></i> Chain Integrity Verification</h5>
+                        <button class="btn btn-light btn-sm" onclick="verifyFullChain()">
+                            <i class="fas fa-sync"></i> Verify Chain
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="verificationResult">
+                            <p class="text-muted">Click "Verify Chain" to check blockchain integrity and detect any tampering</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-list"></i> Recent Blockchain Events</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="loadingTransactions" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading blockchain transactions...</p>
+                        </div>
+                        <div id="transactionsContainer" class="chain-link" style="display: none;">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="noTransactions" class="alert alert-info" style="display: none;">
+                            <i class="fas fa-info-circle"></i>
+                            No blockchain events yet. Record some events by running:
+                            <code>python manage.py record_blockchain_events --study_id=Study_1</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/blockchain.js"></script>
+
+    <script>
+    $(document).ready(function() {
+        loadBlockchainStats();
+        loadRecentTransactions();
+    });
+
+    async function loadBlockchainStats() {
+        try {
+            const stats = await blockchainService.getStats();
+
+            if (stats.error) {
+                console.error('Stats error:', stats.error);
+                return;
+            }
+
+            $('#totalBlocks').text(stats.total_blocks || 0);
+            $('#latestBlock').text(`#${stats.latest_block_number || 0}`);
+            $('#verificationRate').text(`${stats.verification_rate?.toFixed(1) || 0}%`);
+
+            // Show chain status with animated shield
+            $('#chainStatus').html('<i class="fas fa-shield-alt verified-badge"></i>');
+
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    async function loadRecentTransactions() {
+        try {
+            const data = await blockchainService.getRecentTransactions(15);
+
+            $('#loadingTransactions').hide();
+
+            if (!data.transactions || data.transactions.length === 0) {
+                $('#noTransactions').show();
+                return;
+            }
+
+            $('#transactionsContainer').show();
+            populateTransactions(data.transactions);
+
+        } catch (error) {
+            console.error('Error loading transactions:', error);
+            $('#loadingTransactions').hide();
+            $('#noTransactions').show();
+        }
+    }
+
+    function populateTransactions(transactions) {
+        const container = $('#transactionsContainer');
+        container.empty();
+
+        transactions.forEach((tx, index) => {
+            const verifiedBadge = tx.verified
+                ? '<span class="badge bg-success"><i class="fas fa-check"></i> Verified</span>'
+                : '<span class="badge bg-secondary">Unverified</span>';
+
+            const integrityBadge = tx.data_intact
+                ? '<span class="badge bg-success ms-2"><i class="fas fa-lock"></i> Intact</span>'
+                : '<span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Tampered</span>';
+
+            const eventIcon = getEventIcon(tx.event_type);
+            const timestamp = new Date(tx.timestamp).toLocaleString();
+
+            const html = `
+                <div class="transaction-card card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6>
+                                    <i class="fas fa-${eventIcon} text-primary"></i>
+                                    ${tx.event_description}
+                                </h6>
+                                <p class="tx-hash mb-2">
+                                    <strong>TX Hash:</strong> ${tx.tx_hash.substring(0, 32)}...
+                                </p>
+                                <p class="mb-1">
+                                    <span class="badge bg-primary">Block #${tx.block_number}</span>
+                                    ${verifiedBadge}
+                                    ${integrityBadge}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> ${timestamp} |
+                                    <i class="fas fa-user"></i> ${tx.recorded_by}
+                                </small>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary"
+                                        onclick="viewTransactionDetails('${tx.tx_hash}')">
+                                    <i class="fas fa-search"></i> Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.append(html);
+
+            // Add chain connector (except for last item)
+            if (index < transactions.length - 1) {
+                container.append('<div class="mb-2" style="margin-left: 30px;"><i class="fas fa-arrow-down text-muted"></i></div>');
+            }
+        });
+    }
+
+    function getEventIcon(eventType) {
+        const icons = {
+            'DQI_COMPUTED': 'calculator',
+            'CLEAN_STATUS_UPDATED': 'check-circle',
+            'QUERY_RESOLVED': 'comment-dots',
+            'SAE_REPORTED': 'exclamation-triangle',
+            'DATABASE_LOCK': 'lock',
+            'STUDY_COMPLETION': 'flag-checkered',
+            'DATA_FREEZE': 'snowflake',
+            'PROTOCOL_DEVIATION': 'exclamation-circle'
+        };
+        return icons[eventType] || 'cube';
+    }
+
+    async function verifyFullChain() {
+        $('#verificationResult').html('<div class="text-center"><i class="fas fa-sync fa-spin fa-2x text-primary"></i><p class="mt-2">Verifying blockchain integrity...</p></div>');
+
+        try {
+            const verification = await blockchainService.verifyChain();
+
+            if (verification.error) {
+                $('#verificationResult').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> ${verification.error}
+                    </div>
+                `);
+                return;
+            }
+
+            if (verification.is_valid) {
+                $('#verificationResult').html(`
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-check-circle"></i> Blockchain is Valid!</h5>
+                        <p class="mb-0">
+                            All ${verification.total_blocks} blocks verified successfully.
+                            Chain integrity is intact with no tampering detected.
+                        </p>
+                    </div>
+                `);
+            } else {
+                $('#verificationResult').html(`
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Integrity Issues Detected</h5>
+                        <p><strong>Broken Links:</strong> ${verification.broken_links.length}</p>
+                        <p class="mb-0"><strong>Tampered Blocks:</strong> ${verification.tampered_blocks.length}</p>
+                    </div>
+                `);
+            }
+
+        } catch (error) {
+            console.error('Verification error:', error);
+            $('#verificationResult').html('<div class="alert alert-danger"><i class="fas fa-times-circle"></i> Verification failed</div>');
+        }
+    }
+
+    function viewTransactionDetails(txHash) {
+        alert(`Transaction Details:\n\nHash: ${txHash}\n\nThis would show:\n- Full transaction hash\n- Data snapshot (JSON)\n- Previous hash (chain link)\n- Verification timestamp\n- SHA-256 data fingerprint`);
+    }
+    </script>
+</body>
+</html>
