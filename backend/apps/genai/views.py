@@ -19,7 +19,7 @@ Architecture Integration:
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .services import ClinicalTrialAIService
+from .services import ClinicalTrialAIService, is_ai_configured
 
 
 @api_view(['GET'])
@@ -38,8 +38,9 @@ def suggested_actions(request):
         - actions: Array of suggested actions with title, description,
                    priority, category, and estimated impact
         - study_id: The study for which actions were generated
+        - ai_enabled: Whether AI is configured (if False, using fallbacks)
     
-    Side effects: May call external AI API (Anthropic/Claude)
+    Side effects: May call external AI API (Anthropic/Claude) if configured
     
     Usage: GET /api/v1/genai/suggested-actions/?study_id=Study_1&limit=3
     """
@@ -57,10 +58,17 @@ def suggested_actions(request):
     ai_service = ClinicalTrialAIService()
     actions = ai_service.generate_suggested_actions(study_id, limit)
 
-    return Response({
+    response_data = {
         'actions': actions,
-        'study_id': study_id
-    })
+        'study_id': study_id,
+        'ai_enabled': ai_service.is_configured
+    }
+    
+    # Add helpful message if AI is disabled
+    if not ai_service.is_configured:
+        response_data['message'] = 'AI features disabled. Set ANTHROPIC_API_KEY in .env to enable.'
+    
+    return Response(response_data)
 
 
 @api_view(['GET'])
@@ -142,3 +150,38 @@ def risk_assessment(request):
     assessment = ai_service.assess_subject_risk(subject_id)
 
     return Response(assessment)
+
+
+@api_view(['GET'])
+def ai_status(request):
+    """
+    Check AI service configuration status.
+    
+    Purpose: Returns whether AI features are enabled and provides guidance
+             for configuration if not.
+    
+    Outputs: JSON object containing:
+        - ai_enabled: Whether ANTHROPIC_API_KEY is configured
+        - message: Status message
+        - features: List of AI features and their availability
+    
+    Usage: GET /api/v1/genai/status/
+    """
+    ai_configured = is_ai_configured()
+    
+    response_data = {
+        'ai_enabled': ai_configured,
+        'features': {
+            'suggested_actions': ai_configured,
+            'query_suggestions': ai_configured,
+            'risk_assessment': ai_configured,
+        }
+    }
+    
+    if ai_configured:
+        response_data['message'] = 'AI features are enabled and ready.'
+    else:
+        response_data['message'] = 'AI features disabled. Set ANTHROPIC_API_KEY in your environment or .env file.'
+        response_data['setup_instructions'] = 'See README.md section "AI API Keys Setup" for configuration instructions.'
+    
+    return Response(response_data)

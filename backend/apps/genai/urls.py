@@ -9,8 +9,11 @@ API Endpoints:
 - GET /api/v1/genai/suggested-actions/ - AI-generated action recommendations
 - GET /api/v1/genai/query-suggestion/ - Query response suggestions
 - GET /api/v1/genai/risk-assessment/ - Subject risk assessment
+- GET /api/v1/genai/status/ - AI configuration status check
 
 Integration: Uses Anthropic Claude for AI inference.
+Requires ANTHROPIC_API_KEY environment variable.
+AI features gracefully degrade when key is not configured.
 """
 
 from django.urls import path
@@ -19,6 +22,9 @@ from . import views
 # URL patterns for GenAI API
 # Each endpoint provides AI-powered insights for clinical trial operations
 urlpatterns = [
+    # AI configuration status check
+    path('status/', views.ai_status, name='genai-status'),
+    
     # AI-generated action recommendations for CRAs/DQT
     path('suggested-actions/', views.suggested_actions, name='genai-suggested-actions'),
     

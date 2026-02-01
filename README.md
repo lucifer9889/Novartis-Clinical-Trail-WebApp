@@ -152,6 +152,87 @@ See [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) for detailed schema.
 - Query likelihood prediction (RNN)
 - Patient dropout prediction (PNN)
 
+## AI API Keys Setup
+
+The Clinical Trial Control Tower uses AI services for intelligent suggestions and analysis. AI features will gracefully degrade to rule-based fallbacks if API keys are not configured.
+
+### Quick Setup
+
+1. **Copy the example environment file:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Get your Anthropic API key:**
+   - Go to [https://console.anthropic.com/](https://console.anthropic.com/)
+   - Create an account or sign in
+   - Navigate to API Keys and create a new key
+   - Copy the key (format: `sk-ant-api03-...`)
+
+3. **Set the key in your `.env` file:**
+   ```bash
+   ANTHROPIC_API_KEY=sk-ant-api03-your-actual-key-here
+   ```
+
+4. **Restart the development server**
+
+### Setting Environment Variables
+
+**Windows (PowerShell):**
+```powershell
+$env:ANTHROPIC_API_KEY="sk-ant-api03-your-key-here"
+```
+
+**Windows (Command Prompt):**
+```cmd
+set ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+```
+
+**Mac/Linux:**
+```bash
+export ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+```
+
+**For production deployments**, use your platform's secrets management:
+- Docker: Use `--env-file` or `-e` flags
+- Kubernetes: Use Secrets
+- AWS: Use Secrets Manager or Parameter Store
+- Azure: Use Key Vault
+
+### Required Keys by Feature
+
+| Feature | Required Key | Fallback Behavior |
+|---------|-------------|-------------------|
+| GenAI Suggested Actions | `ANTHROPIC_API_KEY` | Rule-based priority actions |
+| Query Response Suggestions | `ANTHROPIC_API_KEY` | "Please review manually" message |
+| Subject Risk Assessment | `ANTHROPIC_API_KEY` | Basic DQI-based assessment |
+| Predictive AI (Phase 6) | None (local models) | Always available |
+
+### Security Best Practices
+
+⚠️ **IMPORTANT: Never commit real API keys to version control.**
+
+- `.env` files are already in `.gitignore`
+- Use `.env.example` as a template (no real secrets)
+- Rotate keys immediately if accidentally exposed
+- Use different keys for development and production
+- Set appropriate API key permissions/rate limits in provider console
+
+### Verifying AI Configuration
+
+Check if AI is properly configured by calling:
+```
+GET /api/v1/genai/suggested-actions/
+```
+
+If AI is disabled, the response will include:
+```json
+{
+  "ai_disabled": true,
+  "message": "Set ANTHROPIC_API_KEY in .env to enable AI features."
+}
+```
+
 ## Blockchain Integration
 
 - Data fingerprinting (SHA-256 hashes)

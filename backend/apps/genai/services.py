@@ -6,8 +6,14 @@ Architecture Integration:
 - Policy-aware retrieval + RAG
 - Evidence-based recommendations
 - Audit trail for all AI outputs
+
+AI API Key Configuration:
+- Set ANTHROPIC_API_KEY in your environment or .env file
+- See README.md section "AI API Keys Setup" for instructions
+- AI features gracefully degrade when key is not configured
 """
 
+import logging
 import anthropic
 from django.conf import settings
 from apps.core.models import Subject, Site
@@ -16,29 +22,89 @@ from apps.metrics.models import CleanPatientStatus, DQIScoreSubject
 from apps.safety.models import SAEDiscrepancy
 import json
 
+# Logger for GenAI services - NEVER log API keys
+logger = logging.getLogger(__name__)
+
+
+def _get_api_key():
+    """
+    Retrieve ANTHROPIC_API_KEY from settings/environment.
+    
+    Returns:
+        str or None: The API key if configured and valid, None otherwise.
+    
+    Note: Never log or print the actual API key value.
+    """
+    api_key = getattr(settings, 'ANTHROPIC_API_KEY', '')
+    
+    # Check if key is actually set (not empty, not a placeholder)
+    if not api_key or api_key.startswith('YOUR_') or api_key == 'your-api-key-here':
+        return None
+    
+    return api_key
+
+
+def is_ai_configured():
+    """
+    Check if AI services are properly configured.
+    
+    Returns:
+        bool: True if ANTHROPIC_API_KEY is set and valid.
+    """
+    return _get_api_key() is not None
+
 
 class ClinicalTrialAIService:
     """
     AI Service for Clinical Trial insights using Claude.
+    
+    Requires ANTHROPIC_API_KEY environment variable to be set.
+    When not configured, AI features gracefully degrade to rule-based fallbacks.
     """
 
     def __init__(self):
-        # Initialize Anthropic client
-        # Note: In production, use environment variable for API key
-        # For hackathon, you can set it directly or use settings.py
-        self.client = anthropic.Anthropic(
-            api_key=getattr(settings, 'ANTHROPIC_API_KEY', 'your-api-key-here')
-        )
+        """
+        Initialize the AI service.
+        
+        The Anthropic client is only initialized if a valid API key is configured.
+        Check self.is_configured before making AI calls.
+        """
+        self.client = None
+        self.is_configured = False
         self.model = "claude-sonnet-4-20250514"
+        
+        # Get API key securely from environment
+        api_key = _get_api_key()
+        
+        if api_key:
+            try:
+                self.client = anthropic.Anthropic(api_key=api_key)
+                self.is_configured = True
+                logger.debug("Anthropic client initialized successfully")
+            except Exception as e:
+                # Log error without exposing key details
+                logger.warning(f"Failed to initialize Anthropic client: {type(e).__name__}")
+                self.is_configured = False
+        else:
+            logger.info(
+                "ANTHROPIC_API_KEY not configured. AI features will use rule-based fallbacks. "
+                "Set ANTHROPIC_API_KEY in your environment or .env file to enable AI features."
+            )
 
     def generate_suggested_actions(self, study_id='Study_1', limit=3):
         """
         Generate AI-powered suggested actions for CRAs.
 
         Returns top priority actions based on current study data.
+        Falls back to rule-based actions when AI is not configured.
         """
         # Gather evidence from database
         evidence = self._gather_study_evidence(study_id)
+
+        # Graceful degradation: use fallback if AI not configured
+        if not self.is_configured:
+            logger.debug("AI not configured, using rule-based fallback for suggested actions")
+            return self._fallback_actions(evidence, limit)
 
         # Create prompt for Claude
         prompt = self._build_suggested_actions_prompt(evidence)
@@ -60,7 +126,8 @@ class ClinicalTrialAIService:
             return actions
 
         except Exception as e:
-            print(f"AI Error: {e}")
+            # Log error without exposing sensitive details
+            logger.warning(f"AI API error in generate_suggested_actions: {type(e).__name__}")
             # Fallback to rule-based actions
             return self._fallback_actions(evidence, limit)
 
@@ -69,11 +136,24 @@ class ClinicalTrialAIService:
         Generate AI suggestion for query response.
 
         Analyzes query context and suggests appropriate response.
+        Returns a helpful fallback message when AI is not configured.
         """
         try:
             query = Query.objects.select_related('subject').get(query_id=query_id)
-        except:
+        except Exception:
             return {"error": "Query not found"}
+
+        # Graceful degradation: return fallback if AI not configured
+        if not self.is_configured:
+            logger.debug("AI not configured, returning fallback for query suggestion")
+            return {
+                "query_id": query_id,
+                "suggested_response": "AI suggestions unavailable. Please review query manually.",
+                "confidence": "n/a",
+                "requires_review": True,
+                "ai_disabled": True,
+                "message": "Set ANTHROPIC_API_KEY in .env to enable AI query suggestions."
+            }
 
         # Gather query context
         context = self._gather_query_context(query)
@@ -101,9 +181,10 @@ class ClinicalTrialAIService:
             }
 
         except Exception as e:
+            logger.warning(f"AI API error in generate_query_response_suggestion: {type(e).__name__}")
             return {
                 "query_id": query_id,
-                "error": str(e),
+                "error": "AI service temporarily unavailable",
                 "suggested_response": "Please review query manually."
             }
 
@@ -112,16 +193,30 @@ class ClinicalTrialAIService:
         AI-powered risk assessment for a subject.
 
         Analyzes all blockers and provides prioritized recommendations.
+        Returns basic risk data when AI is not configured.
         """
         try:
             subject = Subject.objects.get(subject_id=subject_id)
             clean_status = CleanPatientStatus.objects.get(subject=subject)
             dqi_score = DQIScoreSubject.objects.get(subject=subject)
-        except:
+        except Exception:
             return {"error": "Subject data not found"}
 
         # Gather subject evidence
         evidence = self._gather_subject_evidence(subject, clean_status, dqi_score)
+
+        # Graceful degradation: return basic assessment if AI not configured
+        if not self.is_configured:
+            logger.debug("AI not configured, returning rule-based risk assessment")
+            return {
+                "subject_id": subject_id,
+                "risk_assessment": self._generate_fallback_assessment(evidence),
+                "dqi_score": float(dqi_score.composite_dqi_score),
+                "risk_band": dqi_score.risk_band,
+                "is_clean": clean_status.is_clean,
+                "ai_disabled": True,
+                "message": "Set ANTHROPIC_API_KEY in .env to enable AI risk assessments."
+            }
 
         # Create prompt
         prompt = self._build_risk_assessment_prompt(evidence)
@@ -147,7 +242,15 @@ class ClinicalTrialAIService:
             }
 
         except Exception as e:
-            return {"error": str(e)}
+            logger.warning(f"AI API error in assess_subject_risk: {type(e).__name__}")
+            return {
+                "subject_id": subject_id,
+                "error": "AI service temporarily unavailable",
+                "risk_assessment": self._generate_fallback_assessment(evidence),
+                "dqi_score": float(dqi_score.composite_dqi_score),
+                "risk_band": dqi_score.risk_band,
+                "is_clean": clean_status.is_clean
+            }
 
     def _gather_study_evidence(self, study_id):
         """Gather key metrics and issues from study."""
@@ -348,3 +451,45 @@ Keep response concise (under 250 words) and actionable for CRAs.
             })
 
         return actions[:limit]
+
+    def _generate_fallback_assessment(self, evidence):
+        """
+        Generate a rule-based risk assessment when AI is not available.
+        
+        Provides basic analysis based on DQI score and blocker count.
+        """
+        risk_band = evidence.get('risk_band', 'Unknown')
+        dqi_score = evidence.get('dqi_score', 0)
+        blockers = evidence.get('blockers', [])
+        is_clean = evidence.get('is_clean', False)
+        
+        # Build assessment text
+        assessment_parts = []
+        
+        # Overall status
+        if is_clean:
+            assessment_parts.append(f"Subject is CLEAN with a DQI score of {dqi_score:.1f}%.")
+        else:
+            assessment_parts.append(f"Subject is BLOCKED with a DQI score of {dqi_score:.1f}% ({risk_band} risk).")
+        
+        # Blocker summary
+        if blockers:
+            assessment_parts.append(f"\n\nActive blockers ({len(blockers)}):")
+            for blocker in blockers[:5]:  # Limit to 5 blockers
+                assessment_parts.append(f"- {blocker}")
+            if len(blockers) > 5:
+                assessment_parts.append(f"  ...and {len(blockers) - 5} more")
+        
+        # Priority recommendation
+        if risk_band == 'Critical':
+            assessment_parts.append("\n\nRecommendation: Immediate attention required. Escalate to site coordinator.")
+        elif risk_band == 'High':
+            assessment_parts.append("\n\nRecommendation: Prioritize resolution within 48 hours.")
+        elif risk_band == 'Medium':
+            assessment_parts.append("\n\nRecommendation: Address blockers within the week.")
+        else:
+            assessment_parts.append("\n\nRecommendation: Monitor and maintain data quality.")
+        
+        assessment_parts.append("\n\n[Note: This is a rule-based assessment. Enable AI for detailed analysis.]")
+        
+        return "".join(assessment_parts)
