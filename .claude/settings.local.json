@@ -20,7 +20,8 @@
       "Bash(venv/Scripts/python:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nPhase 0: Project setup complete\n\n- Created complete folder structure \\(backend, frontend, ai_models, blockchain, data, docs, tests\\)\n- Configured Django with 7 apps \\(core, monitoring, safety, medical_coding, metrics, blockchain, ai_services\\)\n- Set up requirements files \\(main, dev, ML\\)\n- Created documentation templates \\(API docs, database schema\\)\n- Initialized configuration files \\(.env.example, .gitignore, LICENSE, setup.py\\)\n- All apps have placeholder urls.py and views.py with documented routes\n- Django check passes, server starts successfully\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(python manage.py makemigrations:*)"
+      "Bash(python manage.py makemigrations:*)",
+      "Bash(cd:*)"
     ]
   }
 }

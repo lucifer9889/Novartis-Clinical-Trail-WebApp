@@ -1,4 +1,20 @@
-"""GenAI API views."""
+"""
+GenAI API Views for Clinical Trial Control Tower.
+
+This module provides REST API endpoints for AI-powered suggestions
+and analysis features. These endpoints integrate with Claude AI
+to provide intelligent recommendations for clinical trial operations.
+
+API Endpoints:
+- GET /api/v1/genai/suggested-actions/ - Priority action suggestions
+- GET /api/v1/genai/query-suggestion/ - Query response suggestions
+- GET /api/v1/genai/risk-assessment/ - Subject risk assessment
+
+Architecture Integration:
+- GenAI Orchestrator (Governed) component
+- Policy-aware retrieval + RAG
+- Evidence-based recommendations
+"""
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -9,13 +25,35 @@ from .services import ClinicalTrialAIService
 @api_view(['GET'])
 def suggested_actions(request):
     """
-    Get AI-generated suggested actions.
-
-    GET /api/v1/genai/suggested-actions/?study_id=Study_1&limit=3
+    Get AI-generated suggested actions for CRAs.
+    
+    Purpose: Returns prioritized action recommendations based on
+             current study data and AI analysis.
+    
+    Inputs (query parameters):
+        - study_id: Study identifier (default: 'Study_1')
+        - limit: Maximum number of actions to return (default: 3)
+    
+    Outputs: JSON object containing:
+        - actions: Array of suggested actions with title, description,
+                   priority, category, and estimated impact
+        - study_id: The study for which actions were generated
+    
+    Side effects: May call external AI API (Anthropic/Claude)
+    
+    Usage: GET /api/v1/genai/suggested-actions/?study_id=Study_1&limit=3
     """
+    # Extract query parameters with defaults
     study_id = request.query_params.get('study_id', 'Study_1')
-    limit = int(request.query_params.get('limit', 3))
+    
+    # Validate and parse limit parameter
+    try:
+        limit = int(request.query_params.get('limit', 3))
+        limit = max(1, min(limit, 10))  # Clamp between 1 and 10
+    except ValueError:
+        limit = 3
 
+    # Initialize AI service and generate actions
     ai_service = ClinicalTrialAIService()
     actions = ai_service.generate_suggested_actions(study_id, limit)
 
@@ -29,17 +67,36 @@ def suggested_actions(request):
 def query_suggestion(request):
     """
     Get AI suggestion for query response.
-
-    GET /api/v1/genai/query-suggestion/?query_id=123
+    
+    Purpose: Analyzes a specific query and generates a suggested
+             response that follows clinical trial documentation standards.
+    
+    Inputs (query parameters):
+        - query_id: Required. The ID of the query to analyze
+    
+    Outputs: JSON object containing:
+        - query_id: The analyzed query ID
+        - suggested_response: AI-generated response text
+        - confidence: Confidence level of the suggestion
+        - requires_review: Boolean indicating if human review is needed
+    
+    Side effects: 
+        - May call external AI API (Anthropic/Claude)
+        - Database read to fetch query details
+    
+    Usage: GET /api/v1/genai/query-suggestion/?query_id=123
     """
+    # Extract and validate query_id parameter
     query_id = request.query_params.get('query_id')
 
+    # Query ID is required for this endpoint
     if not query_id:
         return Response(
             {'error': 'query_id required'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    # Initialize AI service and generate suggestion
     ai_service = ClinicalTrialAIService()
     suggestion = ai_service.generate_query_response_suggestion(int(query_id))
 
@@ -49,18 +106,38 @@ def query_suggestion(request):
 @api_view(['GET'])
 def risk_assessment(request):
     """
-    Get AI-powered risk assessment for subject.
-
-    GET /api/v1/genai/risk-assessment/?subject_id=Study_1_0-001
+    Get AI-powered risk assessment for a specific subject.
+    
+    Purpose: Analyzes all blockers and data quality issues for a subject
+             and provides prioritized recommendations for resolution.
+    
+    Inputs (query parameters):
+        - subject_id: Required. The ID of the subject to analyze
+    
+    Outputs: JSON object containing:
+        - subject_id: The analyzed subject ID
+        - risk_assessment: AI-generated assessment text
+        - dqi_score: Current DQI score for the subject
+        - risk_band: Risk classification (Low/Medium/High/Critical)
+        - is_clean: Whether subject has clean patient status
+    
+    Side effects:
+        - May call external AI API (Anthropic/Claude)
+        - Database read to fetch subject data and metrics
+    
+    Usage: GET /api/v1/genai/risk-assessment/?subject_id=Study_1_0-001
     """
+    # Extract and validate subject_id parameter
     subject_id = request.query_params.get('subject_id')
 
+    # Subject ID is required for this endpoint
     if not subject_id:
         return Response(
             {'error': 'subject_id required'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    # Initialize AI service and generate assessment
     ai_service = ClinicalTrialAIService()
     assessment = ai_service.assess_subject_risk(subject_id)
 
