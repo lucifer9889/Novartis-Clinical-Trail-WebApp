@@ -448,3 +448,161 @@ def at_risk_subjects(request):
             'total_at_risk': 0,
             'message': 'No at-risk subjects found. Ensure DQI scores are computed.'
         })
+
+
+@api_view(['GET'])
+def risk_heatmap_data(request):
+    """
+    API endpoint for Risk Heatmap in Predictive AI Dashboard.
+    
+    Purpose: Returns site-level risk metrics organized for heatmap display.
+             Each site has risk scores across multiple dimensions.
+    
+    Inputs (query parameters):
+        - study_id: Study identifier (default: 'Study_1')
+    
+    Outputs: JSON object containing:
+        - sites: List of site risk data with scores per dimension
+        - dimensions: List of risk dimension names
+        - updated_at: Timestamp of data
+    
+    Side effects: None (read-only)
+    
+    Usage: GET /api/v1/risk-heatmap/?study_id=Study_1
+    """
+    study_id = request.query_params.get('study_id', 'Study_1')
+    
+    try:
+        # Get all sites for the study
+        sites = Site.objects.filter(study_id=study_id).select_related('country')
+        
+        heatmap_data = []
+        
+        for site in sites:
+            # Calculate risk metrics for each dimension
+            site_subjects = Subject.objects.filter(site=site)
+            subject_count = site_subjects.count()
+            
+            if subject_count == 0:
+                continue
+            
+            # Query backlog
+            query_count = Query.objects.filter(
+                subject__site=site, 
+                query_status='Open'
+            ).count()
+            query_risk = 'critical' if query_count > 25 else 'high' if query_count > 15 else 'medium' if query_count > 5 else 'low'
+            
+            # Missing pages
+            missing_pages = MissingPage.objects.filter(
+                subject__site=site,
+                is_resolved=False
+            ).count()
+            pages_risk = 'high' if missing_pages > 10 else 'medium' if missing_pages > 3 else 'low'
+            
+            # Missing visits
+            missing_visits = MissingVisit.objects.filter(
+                subject__site=site,
+                is_resolved=False
+            ).count()
+            visit_risk = 'high' if missing_visits > 5 else 'medium' if missing_visits > 2 else 'low'
+            
+            # SAE backlog
+            sae_count = SAEDiscrepancy.objects.filter(
+                subject__site=site,
+                resolution_status__in=['Open', 'Pending']
+            ).count()
+            safety_risk = 'critical' if sae_count > 3 else 'high' if sae_count > 1 else 'medium' if sae_count > 0 else 'low'
+            
+            # Get site DQI score
+            site_dqi = DQIScoreSite.objects.filter(site=site).first()
+            dqi_score = float(site_dqi.composite_dqi_score) if site_dqi else 75.0
+            
+            # Calculate overall risk
+            risk_scores = {'low': 0, 'medium': 1, 'high': 2, 'critical': 3}
+            risks = [query_risk, pages_risk, visit_risk, safety_risk]
+            avg_risk = sum(risk_scores.get(r, 0) for r in risks) / len(risks)
+            overall = 'critical' if avg_risk >= 2.5 else 'high' if avg_risk >= 1.5 else 'medium' if avg_risk >= 0.5 else 'low'
+            
+            heatmap_data.append({
+                'site_id': site.site_id,
+                'site_number': site.site_number,
+                'site_name': f"Site {site.site_number} - {site.city or 'Unknown'}",
+                'country': site.country.country_name if site.country else 'Unknown',
+                'subject_count': subject_count,
+                'dqi_score': dqi_score,
+                'risks': {
+                    'recruitment_delay': 'low',  # Placeholder - would need enrollment data
+                    'query_backlog': query_risk,
+                    'data_entry_delay': 'medium',  # Placeholder
+                    'missing_pages': pages_risk,
+                    'missing_visits': visit_risk,
+                    'safety_backlog': safety_risk,
+                    'coding_backlog': 'low',  # Placeholder
+                    'overall': overall
+                }
+            })
+        
+        return Response({
+            'sites': heatmap_data,
+            'dimensions': [
+                'recruitment_delay', 'query_backlog', 'data_entry_delay',
+                'missing_pages', 'missing_visits', 'safety_backlog', 
+                'coding_backlog', 'overall'
+            ],
+            'study_id': study_id,
+            'total_sites': len(heatmap_data)
+        })
+    
+    except Exception as e:
+        # Return demo data if database query fails
+        return Response({
+            'sites': [],
+            'dimensions': [],
+            'message': f'Error loading heatmap data: {str(e)}',
+            'study_id': study_id
+        })
+
+
+@api_view(['GET'])
+def user_context(request):
+    """
+    API endpoint for current user context and permissions.
+    
+    Purpose: Returns information about the logged-in user including
+             role, allowed modules, and display information.
+    
+    Outputs: JSON object containing:
+        - is_authenticated: Boolean
+        - username: User's username
+        - full_name: User's full name
+        - role: User's primary role (group name)
+        - allowed_modules: List of modules the user can access
+    
+    Side effects: None (read-only)
+    
+    Usage: GET /api/v1/user-context/
+    """
+    from apps.core.auth_helpers import user_role, get_allowed_modules
+    
+    if not request.user.is_authenticated:
+        return Response({
+            'is_authenticated': False,
+            'error': 'Authentication required'
+        }, status=401)
+    
+    user = request.user
+    role = user_role(request)
+    
+    return Response({
+        'is_authenticated': True,
+        'username': user.username,
+        'full_name': user.get_full_name() or user.username,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': user.email,
+        'role': role,
+        'is_superuser': user.is_superuser,
+        'allowed_modules': get_allowed_modules(request),
+    })
+

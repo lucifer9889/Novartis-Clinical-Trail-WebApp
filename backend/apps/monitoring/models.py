@@ -15,6 +15,8 @@ Models:
 - FACT_NONCONFORMANT_EVENT
 - FACT_MISSING_VISIT
 - FACT_MISSING_PAGE
+- FACT_OPEN_ISSUE_SUMMARY
+- FACT_CRF_EVENT
 
 Reference: NEST2 Project Document Section 7.3, Backend Architecture
 Source: CPID_EDC_Metrics, Visit Projection Tracker, Missing Pages Report
@@ -22,9 +24,132 @@ Source: CPID_EDC_Metrics, Visit Projection Tracker, Missing Pages Report
 
 from django.db import models
 from django.utils import timezone
-from apps.core.models import Study, Site, Subject, Visit, FormPage
+from apps.core.models import Study, Site, Subject, Visit, FormPage, Country
 import hashlib
 import json
+
+
+class OpenIssueSummary(models.Model):
+    """
+    FACT_OPEN_ISSUE_SUMMARY - Aggregated open issue counts per subject.
+
+    Architecture Integration:
+    - Pre-computed counts for dashboard performance
+    - Updated incrementally when issues change
+    - Part of KPI + Analytics Service cache layer
+    """
+
+    id = models.AutoField(primary_key=True)
+    study = models.ForeignKey(
+        Study,
+        on_delete=models.CASCADE,
+        related_name='open_issue_summaries'
+    )
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.CASCADE,
+        related_name='open_issue_summary'
+    )
+    site = models.ForeignKey(
+        Site,
+        on_delete=models.CASCADE,
+        related_name='open_issue_summaries',
+        null=True,
+        blank=True
+    )
+
+    # Issue counts
+    open_query_count = models.IntegerField(default=0)
+    missing_page_count = models.IntegerField(default=0)
+    missing_visit_count = models.IntegerField(default=0)
+    sae_discrepancy_count = models.IntegerField(default=0)
+    protocol_deviation_count = models.IntegerField(default=0)
+    total_open_issue_count = models.IntegerField(default=0)
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'fact_open_issue_summary'
+        verbose_name = 'Open Issue Summary'
+        verbose_name_plural = 'Open Issue Summaries'
+        unique_together = [['study', 'subject']]
+        indexes = [
+            models.Index(fields=['study', 'total_open_issue_count']),
+        ]
+
+
+class CRFEvent(models.Model):
+    """
+    FACT_CRF_EVENT - CRF freeze/unfreeze/lock/unlock events.
+
+    Architecture Integration:
+    - Part of Clinical Data Pod (form status lifecycle)
+    - Events recorded on blockchain for regulatory audit trail
+    - Feeds database lock status tracking
+    """
+
+    EVENT_TYPE_CHOICES = [
+        ('freeze', 'Freeze'),
+        ('unfreeze', 'Unfreeze'),
+        ('lock', 'Lock'),
+        ('unlock', 'Unlock'),
+        ('sign', 'Sign'),
+        ('unsign', 'Unsign'),
+    ]
+
+    crf_event_id = models.AutoField(primary_key=True)
+    study = models.ForeignKey(
+        Study,
+        on_delete=models.CASCADE,
+        related_name='crf_events'
+    )
+    site = models.ForeignKey(
+        Site,
+        on_delete=models.CASCADE,
+        related_name='crf_events',
+        null=True,
+        blank=True
+    )
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.CASCADE,
+        related_name='crf_events',
+        null=True,
+        blank=True
+    )
+
+    # Event details
+    event_type = models.CharField(
+        max_length=20,
+        choices=EVENT_TYPE_CHOICES,
+        help_text="Type of CRF event"
+    )
+    event_time = models.DateTimeField(
+        help_text="When the event occurred"
+    )
+    folder_name = models.CharField(max_length=200, null=True, blank=True)
+    page_name = models.CharField(max_length=200, null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+
+    # Blockchain proof
+    blockchain_tx_hash = models.CharField(max_length=66, null=True, blank=True)
+
+    # Audit
+    performed_by = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'fact_crf_event'
+        verbose_name = 'CRF Event'
+        verbose_name_plural = 'CRF Events'
+        ordering = ['-event_time']
+        indexes = [
+            models.Index(fields=['study', 'event_type']),
+            models.Index(fields=['subject', 'event_time']),
+        ]
 
 
 class Query(models.Model):
@@ -74,11 +199,38 @@ class Query(models.Model):
     query_id = models.AutoField(primary_key=True)
 
     # Foreign keys
+    study = models.ForeignKey(
+        Study,
+        on_delete=models.CASCADE,
+        related_name='queries',
+        null=True,
+        blank=True,
+        help_text="Parent study"
+    )
+
+    site = models.ForeignKey(
+        Site,
+        on_delete=models.CASCADE,
+        related_name='queries',
+        null=True,
+        blank=True,
+        help_text="Site this query belongs to"
+    )
+
     subject = models.ForeignKey(
         Subject,
         on_delete=models.CASCADE,
         related_name='queries',
         help_text="Subject this query belongs to"
+    )
+
+    visit = models.ForeignKey(
+        Visit,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='queries',
+        help_text="Visit this query belongs to"
     )
 
     page = models.ForeignKey(
@@ -88,6 +240,28 @@ class Query(models.Model):
         blank=True,
         related_name='queries',
         help_text="Form page where query was raised"
+    )
+
+    # Denormalized location fields (for faster filtering)
+    region = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text="Region (denormalized from country)"
+    )
+
+    country_code = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        help_text="Country code (denormalized from site)"
+    )
+
+    site_number = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Site number (denormalized from site)"
     )
 
     # Query identification
@@ -165,6 +339,19 @@ class Query(models.Model):
         help_text="Days since site responded (waiting DM closure)"
     )
 
+    # Query iteration tracking (per ER diagram)
+    query_iters = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Number of query iterations/reopens"
+    )
+
+    query_repair_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when query was repaired/fixed"
+    )
+
     # GenAI integration (Phase 5)
     suggested_response = models.TextField(
         null=True,
@@ -194,6 +381,8 @@ class Query(models.Model):
         verbose_name_plural = 'Queries'
         ordering = ['-query_open_date']
         indexes = [
+            models.Index(fields=['study', 'query_status']),
+            models.Index(fields=['site', 'query_status']),
             models.Index(fields=['subject', 'query_status']),
             models.Index(fields=['query_status', 'action_owner']),
             models.Index(fields=['action_owner', 'query_open_date']),
@@ -201,6 +390,7 @@ class Query(models.Model):
         permissions = [
             ("view_assigned_queries", "Can view queries for assigned sites only"),
         ]
+
 
     def __str__(self):
         return f"Query {self.log_number} - {self.subject.subject_id}"
@@ -536,7 +726,23 @@ class MissingVisit(models.Model):
 
     missing_visit_id = models.AutoField(primary_key=True)
 
-    # Foreign key
+    # Foreign keys
+    study = models.ForeignKey(
+        Study,
+        on_delete=models.CASCADE,
+        related_name='missing_visits',
+        null=True,
+        blank=True
+    )
+
+    site = models.ForeignKey(
+        Site,
+        on_delete=models.CASCADE,
+        related_name='missing_visits',
+        null=True,
+        blank=True
+    )
+
     subject = models.ForeignKey(
         Subject,
         on_delete=models.CASCADE,
@@ -558,6 +764,12 @@ class MissingVisit(models.Model):
         help_text="Number of days past projected date (urgency metric)"
     )
 
+    # Resolution tracking
+    is_resolved = models.BooleanField(
+        default=False,
+        help_text="Whether this missing visit has been resolved"
+    )
+
     # Audit fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -570,6 +782,7 @@ class MissingVisit(models.Model):
         ordering = ['-days_outstanding']
         indexes = [
             models.Index(fields=['subject', 'days_outstanding']),
+            models.Index(fields=['site', 'is_resolved']),
         ]
 
 
@@ -592,7 +805,23 @@ class MissingPage(models.Model):
 
     missing_page_id = models.AutoField(primary_key=True)
 
-    # Foreign key
+    # Foreign keys
+    study = models.ForeignKey(
+        Study,
+        on_delete=models.CASCADE,
+        related_name='missing_pages',
+        null=True,
+        blank=True
+    )
+
+    site = models.ForeignKey(
+        Site,
+        on_delete=models.CASCADE,
+        related_name='missing_pages',
+        null=True,
+        blank=True
+    )
+
     subject = models.ForeignKey(
         Subject,
         on_delete=models.CASCADE,
@@ -623,9 +852,22 @@ class MissingPage(models.Model):
         help_text="Visit date when page was expected"
     )
 
+    subject_status = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Subject status at time of missing page"
+    )
+
     days_missing = models.IntegerField(
         default=0,
         help_text="Number of days page has been missing (urgency metric)"
+    )
+
+    # Resolution tracking
+    is_resolved = models.BooleanField(
+        default=False,
+        help_text="Whether this missing page has been resolved"
     )
 
     # Audit fields
@@ -639,4 +881,6 @@ class MissingPage(models.Model):
         ordering = ['-days_missing']
         indexes = [
             models.Index(fields=['subject', 'days_missing']),
+            models.Index(fields=['site', 'is_resolved']),
         ]
+

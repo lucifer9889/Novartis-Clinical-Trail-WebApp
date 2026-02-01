@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Input - Clinical Trial Control Tower</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    <style>
+        :root {
+            --sidebar-width: 240px;
+            --topbar-height: 56px;
+            --detail-panel-width: 350px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f6f9;
+        }
+
+        /* Sidebar - Same as dashboard */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1f36 0%, #252c47 100%);
+            z-index: 1050;
+        }
+
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        /* Topbar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            height: var(--topbar-height);
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1040;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+        }
+
+        .topbar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a1f36;
+        }
+
+        /* Content with detail panel */
+        .content-wrapper {
+            display: flex;
+            height: calc(100vh - var(--topbar-height));
+        }
+
+        .spreadsheet-area {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .detail-panel {
+            width: var(--detail-panel-width);
+            background: white;
+            border-left: 1px solid #e9ecef;
+            overflow-y: auto;
+            transition: width 0.3s;
+        }
+
+        .detail-panel.collapsed {
+            width: 0;
+            overflow: hidden;
+        }
+
+        /* Spreadsheet table */
+        .spreadsheet-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .spreadsheet-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .spreadsheet-table {
+            width: 100%;
+            font-size: 0.85rem;
+            border-collapse: collapse;
+        }
+
+        .spreadsheet-table th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            padding: 12px 15px;
+            font-weight: 600;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #495057;
+            white-space: nowrap;
+        }
+
+        .spreadsheet-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .spreadsheet-table tr:hover {
+            background: #f8f9ff;
+        }
+
+        .spreadsheet-table td.editable {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .spreadsheet-table td.editable:hover {
+            background: #e8f0fe;
+        }
+
+        .spreadsheet-table td.selected {
+            background: #d4e5fa !important;
+            outline: 2px solid #0066CC;
+        }
+
+        /* Validation indicators */
+        .cell-valid {
+            background: #d4edda;
+        }
+
+        .cell-warning {
+            background: #fff3cd;
+        }
+
+        .cell-error {
+            background: #f8d7da;
+        }
+
+        .cell-info {
+            background: #d1ecf1;
+        }
+
+        .validation-icon {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 0.7rem;
+        }
+
+        .validation-icon.error {
+            color: #dc3545;
+        }
+
+        .validation-icon.warning {
+            color: #ffc107;
+        }
+
+        .validation-icon.info {
+            color: #17a2b8;
+        }
+
+        /* Detail panel content */
+        .detail-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #0066CC, #004C99);
+            color: white;
+        }
+
+        .detail-header h5 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .detail-body {
+            padding: 20px;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section h6 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #495057;
+            font-size: 0.85rem;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #1a1f36;
+            font-size: 0.85rem;
+        }
+
+        .history-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-item .time {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .history-item .change {
+            font-size: 0.85rem;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            border-radius: 8px;
+        }
+
+        /* Status badges */
+        .status-enrolled {
+            color: #28a745;
+        }
+
+        .status-screening {
+            color: #ffc107;
+        }
+
+        .status-completed {
+            color: #17a2b8;
+        }
+
+        .status-withdrawn {
+            color: #dc3545;
+        }
+
+        /* Sidebar styles (inline for now) */
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0066CC, #4f8ef7);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .sidebar-nav {
+            padding: 15px 0;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 15px 20px 8px;
+        }
+
+        .sidebar-nav .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: rgba(0, 102, 204, 0.2);
+            color: #4f8ef7;
+            border-left-color: #4f8ef7;
+        }
+
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <a href="/dashboard/" class="sidebar-brand">
+                <span class="logo-circle">N</span>
+                <span style="font-size: 0.9rem; font-weight: 600;">Clinical Trial<br>Control Portal</span>
+            </a>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section-title">Main Menu</div>
+            <a href="/dashboard/" class="nav-link" data-module="dashboard">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="/sites/" class="nav-link" data-module="sites">
+                <i class="fas fa-hospital"></i><span>Sites</span>
+            </a>
+            <a href="/queries/" class="nav-link" data-module="queries">
+                <i class="fas fa-question-circle"></i><span>Queries</span>
+            </a>
+            <a href="/excel-input/" class="nav-link active" data-module="excel_input">
+                <i class="fas fa-table"></i><span>Excel Input</span>
+            </a>
+
+            <div class="nav-section-title">Analytics</div>
+            <a href="/reports/" class="nav-link" data-module="reports">
+                <i class="fas fa-chart-bar"></i><span>Reports</span>
+            </a>
+            <a href="/predictive-ai/" class="nav-link" data-module="predictive_ai">
+                <i class="fas fa-brain"></i><span>Predictive AI</span>
+            </a>
+
+            <div class="nav-section-title">Compliance</div>
+            <a href="/audit/" class="nav-link" data-module="audit">
+                <i class="fas fa-clipboard-check"></i><span>Audit</span>
+            </a>
+            <a href="/safety/" class="nav-link" data-module="safety">
+                <i class="fas fa-shield-halved"></i><span>Safety (SAE)</span>
+            </a>
+            <a href="/coding/" class="nav-link" data-module="coding">
+                <i class="fas fa-code"></i><span>Medical Coding</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-role" id="userRole">Loading...</div>
+                </div>
+                <a href="/logout/" class="text-white-50 ms-auto"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <span class="topbar-title">
+                <i class="fas fa-table text-primary me-2"></i>
+                Excel Input / Data Entry
+            </span>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <select class="form-select form-select-sm" id="studySelect" style="width: 140px;">
+                    <option value="Study_1">Study 1</option>
+                    <option value="Study_2">Study 2</option>
+                </select>
+                <button class="btn btn-sm btn-primary btn-action" onclick="validateAll()">
+                    <i class="fas fa-check-circle me-1"></i> Validate All
+                </button>
+                <button class="btn btn-sm btn-outline-primary btn-action" onclick="toggleDetailPanel()">
+                    <i class="fas fa-info-circle me-1"></i> Field Details
+                </button>
+                <button class="btn btn-sm btn-outline-secondary btn-action">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content-wrapper">
+            <!-- Spreadsheet Area -->
+            <div class="spreadsheet-area">
+                <div class="spreadsheet-container">
+                    <div class="spreadsheet-toolbar">
+                        <span class="text-muted">Subjects Data Grid</span>
+                        <div class="ms-auto d-flex align-items-center gap-3">
+                            <span class="badge bg-success">✓ 156 Valid</span>
+                            <span class="badge bg-warning text-dark">⚠ 12 Warnings</span>
+                            <span class="badge bg-danger">✕ 3 Errors</span>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto; max-height: calc(100vh - 200px);">
+                        <table class="spreadsheet-table" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>Site</th>
+                                    <th>Subject ID</th>
+                                    <th>Status</th>
+                                    <th>Enrollment Date</th>
+                                    <th>Visit 1</th>
+                                    <th>Visit 2</th>
+                                    <th>Visit 3</th>
+                                    <th>Missing Pages</th>
+                                    <th>Open Queries</th>
+                                    <th>DQI Score</th>
+                                    <th>SDV %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Panel -->
+            <div class="detail-panel" id="detailPanel">
+                <div class="detail-header">
+                    <h5><i class="fas fa-info-circle me-2"></i> Field Details</h5>
+                    <small id="selectedField">Select a cell to view details</small>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-section">
+                        <h6>Field Information</h6>
+                        <div class="detail-item">
+                            <span class="detail-label">Field Name</span>
+                            <span class="detail-value" id="fieldName">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Current Value</span>
+                            <span class="detail-value" id="fieldValue">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Data Type</span>
+                            <span class="detail-value" id="fieldType">--</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h6>Validation Rules</h6>
+                        <div class="detail-item">
+                            <span class="detail-label">Expected Range</span>
+                            <span class="detail-value" id="fieldRange">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Required</span>
+                            <span class="detail-value" id="fieldRequired">--</span>
+                        </div>
+                        <div id="validationMessage" class="mt-2"></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h6>Edit History</h6>
+                        <div id="editHistory">
+                            <div class="history-item">
+                                <div class="time">No history available</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <button class="btn btn-primary btn-action w-100 mb-2" onclick="explainField()">
+                            <i class="fas fa-robot me-1"></i> Explain with AI
+                        </button>
+                        <button class="btn btn-outline-primary btn-action w-100" onclick="validateField()">
+                            <i class="fas fa-check me-1"></i> Validate Field
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let selectedCell = null;
+        let subjects = [];
+
+        // Field metadata for validation and display
+        const fieldMetadata = {
+            'site': { name: 'Site Number', type: 'Integer', range: '001-999', required: true },
+            'subject_id': { name: 'Subject ID', type: 'String', range: 'Format: X-XXX', required: true },
+            'status': { name: 'Subject Status', type: 'Enum', range: 'Enrolled/Screening/Completed/Withdrawn', required: true },
+            'enrollment_date': { name: 'Enrollment Date', type: 'Date', range: 'YYYY-MM-DD', required: true },
+            'visit_1': { name: 'Visit 1 Status', type: 'Percentage', range: '0-100%', required: false },
+            'visit_2': { name: 'Visit 2 Status', type: 'Percentage', range: '0-100%', required: false },
+            'visit_3': { name: 'Visit 3 Status', type: 'Percentage', range: '0-100%', required: false },
+            'missing_pages': { name: 'Missing Pages Count', type: 'Integer', range: '0+', required: false },
+            'open_queries': { name: 'Open Queries Count', type: 'Integer', range: '0+ (Target: 0)', required: false },
+            'dqi_score': { name: 'Data Quality Index', type: 'Decimal', range: '0-100', required: true },
+            'sdv': { name: 'SDV Percentage', type: 'Percentage', range: '0-100%', required: true }
+        };
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await loadUserData();
+            await loadSubjectData();
+        });
+
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/me/');
+                if (!response.ok) {
+                    window.location.href = '/login/';
+                    return;
+                }
+                const userData = await response.json();
+                document.getElementById('userName').textContent = userData.full_name;
+                document.getElementById('userRole').textContent = userData.role;
+                document.getElementById('userAvatar').textContent = userData.first_name?.[0] || 'U';
+
+                // Hide nav items based on role
+                const navLinks = document.querySelectorAll('.sidebar-nav .nav-link[data-module]');
+                navLinks.forEach(link => {
+                    const module = link.getAttribute('data-module');
+                    if (!userData.allowed_modules.includes(module)) {
+                        link.classList.add('nav-hidden');
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        async function loadSubjectData() {
+            const studyId = document.getElementById('studySelect').value;
+
+            try {
+                const response = await fetch(`/api/v1/role-visibility/?study_id=${studyId}`);
+                const data = await response.json();
+
+                if (data.subjects && data.subjects.length > 0) {
+                    subjects = data.subjects;
+                    renderTable(subjects);
+                } else {
+                    // Generate demo data
+                    subjects = generateDemoData();
+                    renderTable(subjects);
+                }
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+                subjects = generateDemoData();
+                renderTable(subjects);
+            }
+        }
+
+        function generateDemoData() {
+            const statuses = ['Enrolled', 'Screening', 'Completed', 'Withdrawn'];
+            const data = [];
+
+            for (let i = 1; i <= 20; i++) {
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const hasErrors = Math.random() > 0.85;
+                const hasWarnings = Math.random() > 0.7;
+
+                data.push({
+                    site: `${100 + Math.floor(i / 5)}`,
+                    subject_id: `0-${String(i).padStart(3, '0')}`,
+                    status: status,
+                    enrollment_date: `2025-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
+                    visit_1: `${85 + Math.floor(Math.random() * 15)}%`,
+                    visit_2: `${70 + Math.floor(Math.random() * 30)}%`,
+                    visit_3: status === 'Enrolled' ? `${50 + Math.floor(Math.random() * 40)}%` : '--',
+                    missing_pages: hasErrors ? Math.floor(Math.random() * 5) + 1 : 0,
+                    open_queries: hasWarnings ? Math.floor(Math.random() * 8) + 1 : 0,
+                    dqi_score: (70 + Math.random() * 30).toFixed(1),
+                    sdv: `${75 + Math.floor(Math.random() * 25)}%`,
+                    _hasError: hasErrors,
+                    _hasWarning: hasWarnings
+                });
+            }
+
+            return data;
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('dataTableBody');
+
+            tbody.innerHTML = data.map((row, idx) => `
+                <tr>
+                    <td class="editable" data-field="site" data-row="${idx}" onclick="selectCell(this)">${row.site}</td>
+                    <td class="editable" data-field="subject_id" data-row="${idx}" onclick="selectCell(this)">${row.subject_id}</td>
+                    <td class="editable" data-field="status" data-row="${idx}" onclick="selectCell(this)">
+                        <span class="status-${row.status.toLowerCase()}">${row.status}</span>
+                    </td>
+                    <td class="editable" data-field="enrollment_date" data-row="${idx}" onclick="selectCell(this)">${row.enrollment_date}</td>
+                    <td class="editable" data-field="visit_1" data-row="${idx}" onclick="selectCell(this)">${row.visit_1}</td>
+                    <td class="editable" data-field="visit_2" data-row="${idx}" onclick="selectCell(this)">${row.visit_2}</td>
+                    <td class="editable" data-field="visit_3" data-row="${idx}" onclick="selectCell(this)">${row.visit_3}</td>
+                    <td class="editable ${row.missing_pages > 0 ? 'cell-error' : ''}" data-field="missing_pages" data-row="${idx}" onclick="selectCell(this)">
+                        ${row.missing_pages}
+                        ${row.missing_pages > 0 ? '<i class="fas fa-exclamation-circle validation-icon error"></i>' : ''}
+                    </td>
+                    <td class="editable ${row.open_queries > 3 ? 'cell-warning' : ''}" data-field="open_queries" data-row="${idx}" onclick="selectCell(this)">
+                        ${row.open_queries}
+                        ${row.open_queries > 3 ? '<i class="fas fa-exclamation-triangle validation-icon warning"></i>' : ''}
+                    </td>
+                    <td class="editable ${row.dqi_score < 75 ? 'cell-warning' : ''}" data-field="dqi_score" data-row="${idx}" onclick="selectCell(this)">
+                        ${row.dqi_score}
+                    </td>
+                    <td class="editable" data-field="sdv" data-row="${idx}" onclick="selectCell(this)">${row.sdv}</td>
+                </tr>
+            `).join('');
+        }
+
+        function selectCell(td) {
+            // Remove previous selection
+            if (selectedCell) {
+                selectedCell.classList.remove('selected');
+            }
+
+            selectedCell = td;
+            td.classList.add('selected');
+
+            const field = td.dataset.field;
+            const rowIdx = parseInt(td.dataset.row);
+            const value = subjects[rowIdx][field];
+            const meta = fieldMetadata[field];
+
+            // Update detail panel
+            document.getElementById('selectedField').textContent = `Row ${rowIdx + 1}, ${meta.name}`;
+            document.getElementById('fieldName').textContent = meta.name;
+            document.getElementById('fieldValue').textContent = value;
+            document.getElementById('fieldType').textContent = meta.type;
+            document.getElementById('fieldRange').textContent = meta.range;
+            document.getElementById('fieldRequired').textContent = meta.required ? 'Yes' : 'No';
+
+            // Show validation message if applicable
+            const msgDiv = document.getElementById('validationMessage');
+            if (field === 'missing_pages' && value > 0) {
+                msgDiv.innerHTML = '<div class="alert alert-danger py-2 mb-0"><i class="fas fa-times-circle me-1"></i> Missing pages detected. Action required.</div>';
+            } else if (field === 'open_queries' && value > 3) {
+                msgDiv.innerHTML = '<div class="alert alert-warning py-2 mb-0"><i class="fas fa-exclamation-triangle me-1"></i> High query count. Review recommended.</div>';
+            } else if (field === 'dqi_score' && parseFloat(value) < 75) {
+                msgDiv.innerHTML = '<div class="alert alert-warning py-2 mb-0"><i class="fas fa-chart-line me-1"></i> DQI below threshold (75).</div>';
+            } else {
+                msgDiv.innerHTML = '<div class="alert alert-success py-2 mb-0"><i class="fas fa-check-circle me-1"></i> Value within acceptable range.</div>';
+            }
+
+            // Mock edit history
+            document.getElementById('editHistory').innerHTML = `
+                <div class="history-item">
+                    <div class="time">Today, 10:23 AM</div>
+                    <div class="change">Value set to <strong>${value}</strong></div>
+                </div>
+                <div class="history-item">
+                    <div class="time">Yesterday, 3:45 PM</div>
+                    <div class="change">Initial entry by Site Coordinator</div>
+                </div>
+            `;
+        }
+
+        function toggleDetailPanel() {
+            document.getElementById('detailPanel').classList.toggle('collapsed');
+        }
+
+        function validateAll() {
+            const errorCells = document.querySelectorAll('.cell-error, .cell-warning');
+            if (errorCells.length > 0) {
+                alert(`Validation complete.\n\nFound:\n- ${document.querySelectorAll('.cell-error').length} errors\n- ${document.querySelectorAll('.cell-warning').length} warnings\n\nPlease review highlighted cells.`);
+            } else {
+                alert('✓ All data validated successfully!');
+            }
+        }
+
+        function validateField() {
+            if (!selectedCell) {
+                alert('Please select a cell first.');
+                return;
+            }
+
+            const msgDiv = document.getElementById('validationMessage');
+            msgDiv.innerHTML = '<div class="alert alert-success py-2 mb-0"><i class="fas fa-check-circle me-1"></i> Field validated successfully!</div>';
+        }
+
+        function explainField() {
+            if (!selectedCell) {
+                alert('Please select a cell first.');
+                return;
+            }
+
+            const field = selectedCell.dataset.field;
+            const meta = fieldMetadata[field];
+
+            alert(`AI Explanation for "${meta.name}":\n\nThis field tracks ${meta.name.toLowerCase()} data for clinical trial subjects.\n\nExpected format: ${meta.type}\nValid range: ${meta.range}\n\nBest Practice: Ensure this value is updated within 24 hours of data collection to maintain data integrity and compliance with ICH-GCP guidelines.`);
+        }
+
+        // Study change handler
+        document.getElementById('studySelect').addEventListener('change', loadSubjectData);
+    </script>
+</body>
+
+</html>

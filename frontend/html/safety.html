@@ -1,0 +1,33 @@
+{% extends "dashboard.html" %}
+{% load static %}
+
+{# Safety (SAE) Page - Placeholder #}
+
+{% block title %}Safety (SAE) - Clinical Trial Control Tower{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="alert alert-danger">
+        <i class="fas fa-shield-halved me-2"></i>
+        <strong>Safety Dashboard</strong> - Monitor Serious Adverse Events (SAE).
+    </div>
+
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">
+                <i class="fas fa-shield-halved text-danger"></i>
+                SAE Management
+            </span>
+        </div>
+        <div class="section-body">
+            <p>Safety monitoring functionality will be displayed here.</p>
+            <ul>
+                <li>View SAE discrepancies</li>
+                <li>Track SAE reporting timelines</li>
+                <li>Monitor regulatory compliance</li>
+                <li>Generate safety reports</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

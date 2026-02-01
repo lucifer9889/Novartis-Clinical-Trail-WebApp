@@ -1,0 +1,33 @@
+{% extends "dashboard.html" %}
+{% load static %}
+
+{# Queries Management Page - Placeholder #}
+
+{% block title %}Queries - Clinical Trial Control Tower{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="alert alert-warning">
+        <i class="fas fa-question-circle me-2"></i>
+        <strong>Query Management</strong> - Track and resolve data queries.
+    </div>
+
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">
+                <i class="fas fa-question-circle text-warning"></i>
+                Open Queries
+            </span>
+        </div>
+        <div class="section-body">
+            <p>Query management functionality will be displayed here.</p>
+            <ul>
+                <li>View all open queries</li>
+                <li>Filter by site, subject, status</li>
+                <li>Resolve and close queries</li>
+                <li>Track query aging</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

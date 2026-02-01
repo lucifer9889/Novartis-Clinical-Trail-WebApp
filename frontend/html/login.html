@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Login to Clinical Trial Control Tower - Enterprise clinical trial management system">
+    <title>Login - Clinical Trial Control Tower</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: #0066CC;
+            --primary-blue-dark: #004C99;
+            --primary-blue-light: #E8F0FE;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            padding: 50px 40px;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo-circle {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: 800;
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4);
+            margin-bottom: 20px;
+        }
+
+        .logo-container h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin: 0 0 5px 0;
+        }
+
+        .logo-container p {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.15);
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            z-index: 10;
+        }
+
+        .input-group .form-control {
+            padding-left: 45px;
+        }
+
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            color: white;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4);
+            color: white;
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .error-alert {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .demo-users {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .demo-users h6 {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .demo-users-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .demo-user-btn {
+            background: var(--primary-blue-light);
+            border: 1px solid #d4e5fa;
+            color: var(--primary-blue);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .demo-user-btn:hover {
+            background: var(--primary-blue);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .demo-user-btn .role {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.8rem;
+            color: #adb5bd;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 35px 25px;
+            }
+
+            .demo-users-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Logo and Branding -->
+            <div class="logo-container">
+                <div class="logo-circle">N</div>
+                <h1>Clinical Trial Control Tower</h1>
+                <p>Enterprise Clinical Trial Management</p>
+            </div>
+
+            <!-- Error Message -->
+            {% if error_message %}
+            <div class="error-alert">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="post" id="loginForm">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <div class="input-group">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" class="form-control" id="username" name="username"
+                            placeholder="Enter your username" autocomplete="username" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" class="form-control" id="password" name="password"
+                            placeholder="Enter your password" autocomplete="current-password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-login">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Demo Users Quick Login -->
+            <div class="demo-users">
+                <h6><i class="fas fa-users me-1"></i> Quick Login (Demo)</h6>
+                <div class="demo-users-grid">
+                    <button type="button" class="demo-user-btn" onclick="fillCredentials('admin')">
+                        admin
+                        <span class="role">Admin (Full Access)</span>
+                    </button>
+                    <button type="button" class="demo-user-btn" onclick="fillCredentials('Aarav')">
+                        Aarav
+                        <span class="role">Sponsor</span>
+                    </button>
+                    <button type="button" class="demo-user-btn" onclick="fillCredentials('Priya')">
+                        Priya
+                        <span class="role">CRA/Monitor</span>
+                    </button>
+                    <button type="button" class="demo-user-btn" onclick="fillCredentials('Rohit')">
+                        Rohit
+                        <span class="role">Site User</span>
+                    </button>
+                    <button type="button" class="demo-user-btn" onclick="fillCredentials('Neha')">
+                        Neha
+                        <span class="role">Data Manager</span>
+                    </button>
+                    <button type="button" class="demo-user-btn" onclick="fillCredentials('Vikram')">
+                        Vikram
+                        <span class="role">Safety User</span>
+                    </button>
+                    <button type="button" class="demo-user-btn" onclick="fillCredentials('Ananya')">
+                        Ananya
+                        <span class="role">Medical Coder</span>
+                    </button>
+                </div>
+            </div>
+
+            <p class="footer-text">
+                <strong>Team Zenith</strong> • NMIMS Mumbai • NEST 2.0
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Fill credentials and optionally auto-submit
+        function fillCredentials(username) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = username;
+            // Focus on submit button
+            document.querySelector('.btn-login').focus();
+        }
+
+        // Add Enter key submit support
+        document.getElementById('password').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').submit();
+            }
+        });
+    </script>
+</body>
+
+</html>

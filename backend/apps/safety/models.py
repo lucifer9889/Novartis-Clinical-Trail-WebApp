@@ -26,7 +26,28 @@ class LabIssue(models.Model):
     ]
 
     lab_issue_id = models.AutoField(primary_key=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='lab_issues')
+    
+    # Foreign keys (per ER diagram)
+    study = models.ForeignKey(
+        Study,
+        on_delete=models.CASCADE,
+        related_name='lab_issues',
+        null=True,
+        blank=True
+    )
+    site = models.ForeignKey(
+        Site,
+        on_delete=models.CASCADE,
+        related_name='lab_issues',
+        null=True,
+        blank=True
+    )
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.CASCADE,
+        related_name='lab_issues'
+    )
+    
     visit_name = models.CharField(max_length=200)
     form_name = models.CharField(max_length=200)
     lab_category = models.CharField(max_length=200)
@@ -52,6 +73,13 @@ class SAEDiscrepancy(models.Model):
     HIGHEST SEVERITY BLOCKER - Unresolved SAE discrepancies have weight 0.25 in DQI.
     """
 
+    RESOLUTION_STATUS_CHOICES = [
+        ('Open', 'Open'),
+        ('Pending', 'Pending'),
+        ('Resolved', 'Resolved'),
+        ('Closed', 'Closed'),
+    ]
+
     sae_id = models.AutoField(primary_key=True)
     study = models.ForeignKey(Study, on_delete=models.CASCADE, related_name='sae_discrepancies')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='sae_discrepancies')
@@ -59,6 +87,15 @@ class SAEDiscrepancy(models.Model):
 
     discrepancy_id = models.CharField(max_length=100)
     form_name = models.CharField(max_length=200, null=True, blank=True)
+    
+    # Resolution tracking (per ER diagram)
+    resolution_status = models.CharField(
+        max_length=50,
+        choices=RESOLUTION_STATUS_CHOICES,
+        default='Open',
+        help_text="Current resolution status"
+    )
+    
     review_status_dm = models.CharField(max_length=50, null=True, blank=True)
     action_status_dm = models.CharField(max_length=50, null=True, blank=True)
     case_status = models.CharField(max_length=50, null=True, blank=True)
@@ -73,3 +110,7 @@ class SAEDiscrepancy(models.Model):
         unique_together = [['discrepancy_id', 'subject']]
         verbose_name = 'SAE Discrepancy'
         verbose_name_plural = 'SAE Discrepancies'
+        indexes = [
+            models.Index(fields=['site', 'resolution_status']),
+        ]
+

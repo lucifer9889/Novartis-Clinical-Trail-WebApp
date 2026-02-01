@@ -7,7 +7,7 @@ Architecture Integration:
 """
 
 from django.db import models
-from apps.core.models import Study, Subject
+from apps.core.models import Study, Site, Subject
 
 
 class CodingItem(models.Model):
@@ -23,13 +23,24 @@ class CodingItem(models.Model):
     ]
 
     coding_id = models.AutoField(primary_key=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='coding_items')
-    study = models.ForeignKey(Study, on_delete=models.CASCADE, related_name='coding_items')
+    
+    # Foreign keys (per ER diagram)
+    study = models.ForeignKey(
+        Study,
+        on_delete=models.CASCADE,
+        related_name='coding_items'
+    )
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.CASCADE,
+        related_name='coding_items'
+    )
+    
     dictionary_name = models.CharField(max_length=50, choices=DICTIONARY_CHOICES)
     dictionary_version = models.CharField(max_length=50, null=True, blank=True)
-    form_oid = models.CharField(max_length=200)
-    logline = models.CharField(max_length=200, null=True, blank=True)
+    form_oid = models.CharField(max_length=200, null=True, blank=True)
     field_oid = models.CharField(max_length=200, null=True, blank=True)
+    logline = models.CharField(max_length=200, null=True, blank=True)
     coding_status = models.CharField(max_length=50)
     require_coding = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -70,10 +81,31 @@ class InactivatedRecord(models.Model):
     """
 
     inactivated_id = models.AutoField(primary_key=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='inactivated_records')
+    
+    # Foreign keys (per ER diagram)
+    study = models.ForeignKey(
+        Study,
+        on_delete=models.CASCADE,
+        related_name='inactivated_records',
+        null=True,
+        blank=True
+    )
+    site = models.ForeignKey(
+        Site,
+        on_delete=models.CASCADE,
+        related_name='inactivated_records',
+        null=True,
+        blank=True
+    )
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.CASCADE,
+        related_name='inactivated_records'
+    )
+    
     folder_name = models.CharField(max_length=200, null=True, blank=True)
     form_name = models.CharField(max_length=200)
-    data_on_form = models.CharField(max_length=500, null=True, blank=True)
+    record_label = models.CharField(max_length=200, null=True, blank=True)
     record_position = models.CharField(max_length=50, null=True, blank=True)
     audit_action = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -83,3 +115,4 @@ class InactivatedRecord(models.Model):
         db_table = 'fact_inactivated_record'
         verbose_name = 'Inactivated Record'
         verbose_name_plural = 'Inactivated Records'
+

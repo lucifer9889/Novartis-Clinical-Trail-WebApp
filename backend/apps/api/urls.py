@@ -10,6 +10,8 @@ Endpoints:
 - GET /api/v1/study-summary/ - Study-level summary
 - GET /api/v1/sites/ - Site listing
 - GET /api/v1/at-risk-subjects/ - High/Critical risk subjects
+- GET /api/v1/risk-heatmap/ - Site risk heatmap data
+- GET /api/v1/user-context/ - Current user context with role/permissions
 - GET /api/v1/health/ - API health check
 """
 
@@ -27,6 +29,11 @@ urlpatterns = [
     path('study-summary/', views.study_summary, name='api-study-summary'),
     path('sites/', views.site_list, name='api-sites'),
     
-    # Risk analysis endpoint
+    # Risk analysis endpoints
     path('at-risk-subjects/', views.at_risk_subjects, name='api-at-risk-subjects'),
+    path('risk-heatmap/', views.risk_heatmap_data, name='api-risk-heatmap'),
+    
+    # User context endpoint (role-based visibility data)
+    path('user-context/', views.user_context, name='api-user-context'),
 ]
+

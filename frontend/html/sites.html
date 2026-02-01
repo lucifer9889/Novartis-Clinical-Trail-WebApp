@@ -1,0 +1,34 @@
+{% extends "dashboard.html" %}
+{% load static %}
+
+{# Sites Management Page - Placeholder #}
+{# This extends the dashboard layout and shows site-specific content #}
+
+{% block title %}Sites Management - Clinical Trial Control Tower{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="alert alert-info">
+        <i class="fas fa-hospital me-2"></i>
+        <strong>Sites Management</strong> - View and manage clinical trial sites.
+    </div>
+
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">
+                <i class="fas fa-hospital text-primary"></i>
+                All Sites
+            </span>
+        </div>
+        <div class="section-body">
+            <p>Site management functionality will be displayed here.</p>
+            <ul>
+                <li>View all trial sites</li>
+                <li>Monitor site performance</li>
+                <li>Track enrollment by site</li>
+                <li>Manage site contacts</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

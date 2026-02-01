@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive AI - Clinical Trial Control Tower</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    <style>
+        :root {
+            --sidebar-width: 240px;
+            --topbar-height: 56px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f6f9;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1f36 0%, #252c47 100%);
+            z-index: 1050;
+        }
+
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            height: var(--topbar-height);
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1040;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+        }
+
+        .topbar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a1f36;
+        }
+
+        .content-area {
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .heatmap-section {
+            flex: 1;
+        }
+
+        .drilldown-section {
+            width: 400px;
+        }
+
+        /* Card styling */
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a1f36;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        /* Risk Heatmap */
+        .heatmap-container {
+            overflow-x: auto;
+        }
+
+        .heatmap-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 3px;
+            font-size: 0.8rem;
+        }
+
+        .heatmap-table th {
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #495057;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .heatmap-table th.site-header {
+            text-align: left;
+            min-width: 100px;
+        }
+
+        .heatmap-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .heatmap-table td:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .heatmap-table td.site-name {
+            text-align: left;
+            font-weight: 600;
+            background: #f8f9fa;
+            cursor: default;
+        }
+
+        .heatmap-table td.site-name:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Risk levels */
+        .risk-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .risk-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .risk-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .risk-critical {
+            background: #dc3545;
+            color: white;
+        }
+
+        .risk-na {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        /* Legend */
+        .heatmap-legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        /* Drilldown Panel */
+        .drilldown-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+        }
+
+        .drilldown-header h5 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .drilldown-header .site-risk {
+            margin-top: 10px;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .drilldown-header .site-risk.high-risk {
+            background: rgba(220, 53, 69, 0.3);
+        }
+
+        .drilldown-body {
+            padding: 20px;
+        }
+
+        .drilldown-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #6c757d;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .driver-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .driver-item:last-child {
+            border-bottom: none;
+        }
+
+        .driver-label {
+            font-size: 0.85rem;
+            color: #495057;
+        }
+
+        .driver-value {
+            font-weight: 600;
+        }
+
+        .driver-value.danger {
+            color: #dc3545;
+        }
+
+        .driver-value.warning {
+            color: #ffc107;
+        }
+
+        .driver-value.success {
+            color: #28a745;
+        }
+
+        .evidence-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .evidence-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.85rem;
+        }
+
+        .evidence-item a {
+            color: #0066CC;
+            text-decoration: none;
+        }
+
+        .evidence-item a:hover {
+            text-decoration: underline;
+        }
+
+        .action-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid #0066CC;
+        }
+
+        .action-card.urgent {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .action-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1a1f36;
+        }
+
+        .action-desc {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        /* AI Assistant section */
+        .ai-section {
+            margin-top: 20px;
+        }
+
+        .ai-prompt-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-prompt-btn:hover {
+            background: #e8f0fe;
+            border-color: #0066CC;
+            color: #0066CC;
+        }
+
+        .ai-response {
+            background: linear-gradient(135deg, #f8f9ff, #fff);
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* Sidebar styles */
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0066CC, #4f8ef7);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .sidebar-nav {
+            padding: 15px 0;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 15px 20px 8px;
+        }
+
+        .sidebar-nav .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: rgba(0, 102, 204, 0.2);
+            color: #4f8ef7;
+            border-left-color: #4f8ef7;
+        }
+
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <a href="/dashboard/" class="sidebar-brand">
+                <span class="logo-circle">N</span>
+                <span style="font-size: 0.9rem; font-weight: 600;">Clinical Trial<br>Control Portal</span>
+            </a>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section-title">Main Menu</div>
+            <a href="/dashboard/" class="nav-link" data-module="dashboard">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="/sites/" class="nav-link" data-module="sites">
+                <i class="fas fa-hospital"></i><span>Sites</span>
+            </a>
+            <a href="/queries/" class="nav-link" data-module="queries">
+                <i class="fas fa-question-circle"></i><span>Queries</span>
+            </a>
+            <a href="/excel-input/" class="nav-link" data-module="excel_input">
+                <i class="fas fa-table"></i><span>Excel Input</span>
+            </a>
+
+            <div class="nav-section-title">Analytics</div>
+            <a href="/reports/" class="nav-link" data-module="reports">
+                <i class="fas fa-chart-bar"></i><span>Reports</span>
+            </a>
+            <a href="/predictive-ai/" class="nav-link active" data-module="predictive_ai">
+                <i class="fas fa-brain"></i><span>Predictive AI</span>
+            </a>
+
+            <div class="nav-section-title">Compliance</div>
+            <a href="/audit/" class="nav-link" data-module="audit">
+                <i class="fas fa-clipboard-check"></i><span>Audit</span>
+            </a>
+            <a href="/safety/" class="nav-link" data-module="safety">
+                <i class="fas fa-shield-halved"></i><span>Safety (SAE)</span>
+            </a>
+            <a href="/coding/" class="nav-link" data-module="coding">
+                <i class="fas fa-code"></i><span>Medical Coding</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-role" id="userRole">Loading...</div>
+                </div>
+                <a href="/logout/" class="text-white-50 ms-auto"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <span class="topbar-title">
+                <i class="fas fa-brain text-primary me-2"></i>
+                Predictive AI - Risk Analysis
+            </span>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <select class="form-select form-select-sm" id="studySelect" style="width: 140px;">
+                    <option value="Study_1">Study 1</option>
+                    <option value="Study_2">Study 2</option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </button>
+                <button class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content-area">
+            <!-- Heatmap Section -->
+            <div class="heatmap-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <span class="section-title">
+                            <i class="fas fa-th text-primary"></i>
+                            Site Risk Heatmap
+                        </span>
+                        <span class="text-muted" style="font-size: 0.8rem;">Click any cell for details</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="heatmap-container">
+                            <table class="heatmap-table" id="riskHeatmap">
+                                <thead>
+                                    <tr>
+                                        <th class="site-header">Site</th>
+                                        <th>Recruitment Delay</th>
+                                        <th>Query Backlog</th>
+                                        <th>Data Entry Delay</th>
+                                        <th>Missing Pages</th>
+                                        <th>Safety Backlog</th>
+                                        <th>Coding Backlog</th>
+                                        <th>Overall</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="heatmapBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="heatmap-legend">
+                            <div class="legend-item">
+                                <div class="legend-box risk-low"></div>
+                                <span>Low</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-box risk-medium"></div>
+                                <span>Medium</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-box risk-high"></div>
+                                <span>High</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-box risk-critical"></div>
+                                <span>Critical</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-box risk-na"></div>
+                                <span>N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drilldown Section -->
+            <div class="drilldown-section">
+                <div class="section-card">
+                    <div class="drilldown-header" id="drilldownHeader">
+                        <h5><i class="fas fa-map-marker-alt me-2"></i> Site Details</h5>
+                        <p class="mb-0 mt-2" id="drilldownSubtitle">Select a site from the heatmap</p>
+                    </div>
+                    <div class="drilldown-body" id="drilldownBody">
+                        <!-- Why Flagged -->
+                        <div class="mb-4" id="whyFlagged" style="display: none;">
+                            <h6 class="drilldown-section-title">
+                                <i class="fas fa-exclamation-triangle text-warning me-1"></i> Why Flagged
+                            </h6>
+                            <div id="driversContainer"></div>
+                        </div>
+
+                        <!-- Evidence -->
+                        <div class="mb-4" id="evidenceSection" style="display: none;">
+                            <h6 class="drilldown-section-title">
+                                <i class="fas fa-file-alt text-info me-1"></i> Evidence
+                            </h6>
+                            <ul class="evidence-list" id="evidenceList"></ul>
+                        </div>
+
+                        <!-- Recommended Actions -->
+                        <div class="mb-4" id="actionsSection" style="display: none;">
+                            <h6 class="drilldown-section-title">
+                                <i class="fas fa-tasks text-success me-1"></i> Recommended Actions
+                            </h6>
+                            <div id="actionsContainer"></div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div id="actionButtons" style="display: none;">
+                            <button class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-plus me-1"></i> Create Task
+                            </button>
+                            <button class="btn btn-outline-primary w-100">
+                                <i class="fas fa-file-export me-1"></i> Export Brief
+                            </button>
+                        </div>
+
+                        <!-- Initial state message -->
+                        <div id="noDrilldown" class="text-center text-muted py-4">
+                            <i class="fas fa-mouse-pointer fa-3x mb-3"></i>
+                            <p>Click on a site cell in the heatmap to view detailed risk analysis</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Assistant -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <span class="section-title">
+                            <i class="fas fa-robot text-primary"></i>
+                            AI Assistant
+                        </span>
+                    </div>
+                    <div class="section-body">
+                        <div class="ai-section">
+                            <button class="ai-prompt-btn" onclick="askAI('Why is this site high risk?')">
+                                <i class="fas fa-question-circle me-2"></i>
+                                Why is this site high risk?
+                            </button>
+                            <button class="ai-prompt-btn" onclick="askAI('What should I do this week?')">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                What should I do this week?
+                            </button>
+                            <button class="ai-prompt-btn" onclick="askAI('Summarize open issues')">
+                                <i class="fas fa-list-ul me-2"></i>
+                                Summarize open issues
+                            </button>
+                        </div>
+                        <div class="ai-response mt-3" id="aiResponse">
+                            <p><strong>AI Insights Ready</strong></p>
+                            <p class="mb-0 text-muted">Click a prompt above or select a site to get AI-powered analysis.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Sample sites data
+        const sitesData = [
+            { id: '101', name: 'Site 101 - Mumbai', recruitment: 'low', queryBacklog: 'high', dataEntry: 'medium', missingPages: 'high', safety: 'low', coding: 'medium', overall: 'high' },
+            { id: '102', name: 'Site 102 - Delhi', recruitment: 'medium', queryBacklog: 'medium', dataEntry: 'low', missingPages: 'low', safety: 'low', coding: 'low', overall: 'low' },
+            { id: '103', name: 'Site 103 - Bangalore', recruitment: 'low', queryBacklog: 'low', dataEntry: 'low', missingPages: 'medium', safety: 'low', coding: 'low', overall: 'low' },
+            { id: '201', name: 'Site 201 - Chennai', recruitment: 'high', queryBacklog: 'high', dataEntry: 'high', missingPages: 'medium', safety: 'medium', coding: 'high', overall: 'critical' },
+            { id: '202', name: 'Site 202 - Hyderabad', recruitment: 'medium', queryBacklog: 'low', dataEntry: 'medium', missingPages: 'low', safety: 'low', coding: 'medium', overall: 'medium' },
+            { id: '301', name: 'Site 301 - Kolkata', recruitment: 'low', queryBacklog: 'medium', dataEntry: 'low', missingPages: 'low', safety: 'na', coding: 'low', overall: 'low' },
+            { id: '302', name: 'Site 302 - Pune', recruitment: 'high', queryBacklog: 'medium', dataEntry: 'medium', missingPages: 'high', safety: 'low', coding: 'medium', overall: 'high' },
+            { id: '303', name: 'Site 303 - Ahmedabad', recruitment: 'medium', queryBacklog: 'low', dataEntry: 'low', missingPages: 'medium', safety: 'low', coding: 'low', overall: 'medium' },
+        ];
+
+        let selectedSite = null;
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await loadUserData();
+            renderHeatmap();
+        });
+
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/me/');
+                if (!response.ok) {
+                    window.location.href = '/login/';
+                    return;
+                }
+                const userData = await response.json();
+                document.getElementById('userName').textContent = userData.full_name;
+                document.getElementById('userRole').textContent = userData.role;
+                document.getElementById('userAvatar').textContent = userData.first_name?.[0] || 'U';
+
+                const navLinks = document.querySelectorAll('.sidebar-nav .nav-link[data-module]');
+                navLinks.forEach(link => {
+                    const module = link.getAttribute('data-module');
+                    if (!userData.allowed_modules.includes(module)) {
+                        link.classList.add('nav-hidden');
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        function renderHeatmap() {
+            const tbody = document.getElementById('heatmapBody');
+
+            tbody.innerHTML = sitesData.map(site => `
+                <tr>
+                    <td class="site-name">${site.name}</td>
+                    <td class="risk-${site.recruitment}" onclick="selectSite('${site.id}', 'recruitment')">${capitalize(site.recruitment)}</td>
+                    <td class="risk-${site.queryBacklog}" onclick="selectSite('${site.id}', 'queryBacklog')">${capitalize(site.queryBacklog)}</td>
+                    <td class="risk-${site.dataEntry}" onclick="selectSite('${site.id}', 'dataEntry')">${capitalize(site.dataEntry)}</td>
+                    <td class="risk-${site.missingPages}" onclick="selectSite('${site.id}', 'missingPages')">${capitalize(site.missingPages)}</td>
+                    <td class="risk-${site.safety}" onclick="selectSite('${site.id}', 'safety')">${site.safety === 'na' ? 'N/A' : capitalize(site.safety)}</td>
+                    <td class="risk-${site.coding}" onclick="selectSite('${site.id}', 'coding')">${capitalize(site.coding)}</td>
+                    <td class="risk-${site.overall}" onclick="selectSite('${site.id}', 'overall')" style="font-weight: bold;">${capitalize(site.overall)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function capitalize(str) {
+            if (str === 'na') return 'N/A';
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function selectSite(siteId, category) {
+            selectedSite = sitesData.find(s => s.id === siteId);
+            if (!selectedSite) return;
+
+            // Update drilldown header
+            document.getElementById('drilldownSubtitle').innerHTML = `
+                ${selectedSite.name}
+                <span class="site-risk ${selectedSite.overall === 'high' || selectedSite.overall === 'critical' ? 'high-risk' : ''}">
+                    ${capitalize(selectedSite.overall)} Risk
+                </span>
+            `;
+
+            // Show sections
+            document.getElementById('noDrilldown').style.display = 'none';
+            document.getElementById('whyFlagged').style.display = 'block';
+            document.getElementById('evidenceSection').style.display = 'block';
+            document.getElementById('actionsSection').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'block';
+
+            // Populate drivers
+            const drivers = [];
+            if (selectedSite.queryBacklog === 'high') drivers.push({ label: 'Query Backlog', value: '28 open queries', class: 'danger' });
+            if (selectedSite.missingPages === 'high') drivers.push({ label: 'Missing Pages', value: '12 pages', class: 'danger' });
+            if (selectedSite.recruitment === 'high') drivers.push({ label: 'Recruitment Delay', value: '15 days behind', class: 'danger' });
+            if (selectedSite.dataEntry === 'high') drivers.push({ label: 'Data Entry Delay', value: '8 days avg', class: 'danger' });
+            if (selectedSite.safety === 'high' || selectedSite.safety === 'medium') drivers.push({ label: 'Safety Backlog', value: '3 SAE pending', class: 'warning' });
+            if (selectedSite.coding === 'high' || selectedSite.coding === 'medium') drivers.push({ label: 'Coding Backlog', value: '5 terms pending', class: 'warning' });
+
+            if (drivers.length === 0) {
+                drivers.push({ label: 'All Metrics', value: 'Within threshold', class: 'success' });
+            }
+
+            document.getElementById('driversContainer').innerHTML = drivers.map(d => `
+                <div class="driver-item">
+                    <span class="driver-label">${d.label}</span>
+                    <span class="driver-value ${d.class}">${d.value}</span>
+                </div>
+            `).join('');
+
+            // Populate evidence
+            document.getElementById('evidenceList').innerHTML = `
+                <li class="evidence-item">
+                    <i class="fas fa-file-alt text-primary me-2"></i>
+                    <a href="/queries/?site=${siteId}">Query Report - ${siteId}</a>
+                </li>
+                <li class="evidence-item">
+                    <i class="fas fa-file-alt text-primary me-2"></i>
+                    <a href="/reports/?type=missing_pages&site=${siteId}">Missing Pages Report</a>
+                </li>
+                <li class="evidence-item">
+                    <i class="fas fa-clipboard-check text-primary me-2"></i>
+                    <a href="/audit/?site=${siteId}">Site Audit Trail</a>
+                </li>
+            `;
+
+            // Populate actions
+            const isHighRisk = selectedSite.overall === 'high' || selectedSite.overall === 'critical';
+            document.getElementById('actionsContainer').innerHTML = isHighRisk ? `
+                <div class="action-card urgent">
+                    <div class="action-title"><i class="fas fa-phone me-1"></i> Schedule Urgent Site Call</div>
+                    <div class="action-desc">Within 48 hours to address critical issues</div>
+                </div>
+                <div class="action-card">
+                    <div class="action-title"><i class="fas fa-users me-1"></i> Escalate to CRA Manager</div>
+                    <div class="action-desc">Notify for additional support resources</div>
+                </div>
+                <div class="action-card">
+                    <div class="action-title"><i class="fas fa-book me-1"></i> Review Site Training</div>
+                    <div class="action-desc">Identify knowledge gaps and retraining needs</div>
+                </div>
+            ` : `
+                <div class="action-card">
+                    <div class="action-title"><i class="fas fa-check-circle me-1"></i> Continue Standard Monitoring</div>
+                    <div class="action-desc">No immediate action required</div>
+                </div>
+                <div class="action-card">
+                    <div class="action-title"><i class="fas fa-calendar me-1"></i> Schedule Routine Check-in</div>
+                    <div class="action-desc">Weekly status review</div>
+                </div>
+            `;
+
+            // Update AI response
+            document.getElementById('aiResponse').innerHTML = `
+                <p><strong>Analysis for ${selectedSite.name}:</strong></p>
+                <p>${isHighRisk
+                    ? `This site is flagged as <strong>${selectedSite.overall} risk</strong> due to multiple contributing factors. The primary drivers are query backlog and ${selectedSite.missingPages === 'high' ? 'missing pages' : 'data entry delays'}.`
+                    : `This site is performing within acceptable thresholds. Regular monitoring is recommended.`
+                }</p>
+                <p><em>Based on: Query backlog > 20, Missing Pages > 5</em></p>
+            `;
+        }
+
+        function askAI(question) {
+            const responseDiv = document.getElementById('aiResponse');
+
+            if (question.includes('high risk')) {
+                responseDiv.innerHTML = `
+                    <p><strong>Risk Analysis:</strong></p>
+                    <p>${selectedSite ? selectedSite.name : 'Selected site'} is flagged due to:</p>
+                    <ul>
+                        <li>Query backlog exceeds threshold (>20 open queries)</li>
+                        <li>Data entry delay > 5 days average</li>
+                        <li>Missing pages detected > 10</li>
+                    </ul>
+                    <p><em>Evidence: Query Report, Site Performance Dashboard</em></p>
+                `;
+            } else if (question.includes('week')) {
+                responseDiv.innerHTML = `
+                    <p><strong>This Week's Priorities:</strong></p>
+                    <ol>
+                        <li><strong>Critical:</strong> Address Site 201 Chennai - critical risk status</li>
+                        <li><strong>High:</strong> Review 28 aging queries at Site 101</li>
+                        <li><strong>Medium:</strong> Complete SDV for 15 subjects across 3 sites</li>
+                        <li><strong>Routine:</strong> Weekly status calls with top 5 enrolling sites</li>
+                    </ol>
+                `;
+            } else if (question.includes('issues')) {
+                responseDiv.innerHTML = `
+                    <p><strong>Open Issues Summary:</strong></p>
+                    <table style="width:100%; font-size: 0.8rem;">
+                        <tr><td>Open Queries:</td><td><strong>87</strong> (12 high priority)</td></tr>
+                        <tr><td>Missing Pages:</td><td><strong>34</strong> across 6 sites</td></tr>
+                        <tr><td>SAE Discrepancies:</td><td><strong>5</strong> critical</td></tr>
+                        <tr><td>Coding Backlog:</td><td><strong>23</strong> terms pending</td></tr>
+                    </table>
+                    <p class="mt-2"><em>Top affected: Site 201, Site 101, Site 302</em></p>
+                `;
+            } else {
+                responseDiv.innerHTML = `
+                    <p>I can help you with:</p>
+                    <ul>
+                        <li>Understanding why sites are flagged</li>
+                        <li>Prioritizing your weekly tasks</li>
+                        <li>Summarizing open issues</li>
+                    </ul>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>

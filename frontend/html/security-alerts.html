@@ -1,0 +1,33 @@
+{% extends "dashboard.html" %}
+{% load static %}
+
+{# Security Alerts Page - Placeholder #}
+
+{% block title %}Security Alerts - Clinical Trial Control Tower{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="alert alert-warning">
+        <i class="fas fa-bell me-2"></i>
+        <strong>Security Alerts</strong> - Monitor security events and alerts.
+    </div>
+
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">
+                <i class="fas fa-bell text-warning"></i>
+                Active Alerts
+            </span>
+        </div>
+        <div class="section-body">
+            <p>Security monitoring functionality will be displayed here.</p>
+            <ul>
+                <li>View active security alerts</li>
+                <li>Track login anomalies</li>
+                <li>Monitor data access patterns</li>
+                <li>Compliance violations</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

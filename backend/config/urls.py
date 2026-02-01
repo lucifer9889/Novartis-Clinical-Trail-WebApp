@@ -6,6 +6,7 @@ This module defines all URL routes for the application including:
 - REST API endpoints (v1)
 - Frontend template rendering routes
 - Health check endpoint for monitoring
+- Authentication (login, logout)
 - Static/Media file serving in development mode
 
 Reference: Django URL dispatcher docs
@@ -18,6 +19,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+
+# Import auth views
+from apps.core.auth_views import login_view, logout_view, user_me_api
 
 
 def health_check(request):
@@ -53,6 +58,13 @@ urlpatterns = [
     path('api/health/', health_check, name='api-health-check'),
     
     # =========================================
+    # Authentication URLs
+    # =========================================
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('api/me/', user_me_api, name='api-user-me'),
+    
+    # =========================================
     # Django Admin Panel
     # Accessible at /admin/
     # =========================================
@@ -76,30 +88,80 @@ urlpatterns = [
     path('api/v1/blockchain/', include('apps.blockchain.urls')),
 
     # =========================================
-    # Frontend Template Routes
+    # Frontend Template Routes (Protected)
     # Server-rendered HTML pages
     # =========================================
     
-    # Homepage / Landing page - main entry point
+    # Homepage - Landing page (public)
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
     
-    # Dashboard routes - main operational views
+    # Dashboard - Main protected view (requires login)
+    path('dashboard/', 
+         login_required(TemplateView.as_view(template_name='dashboard.html')), 
+         name='dashboard'),
+    
+    # Excel Input / Data Entry
+    path('excel-input/',
+         login_required(TemplateView.as_view(template_name='excel-input.html')),
+         name='excel-input'),
+    
+    # Predictive AI
+    path('predictive-ai/',
+         login_required(TemplateView.as_view(template_name='predictive-ai.html')),
+         name='predictive-ai'),
+    
+    # Sites Management
+    path('sites/',
+         login_required(TemplateView.as_view(template_name='sites.html')),
+         name='sites'),
+    
+    # Queries Management
+    path('queries/',
+         login_required(TemplateView.as_view(template_name='queries.html')),
+         name='queries'),
+    
+    # Reports
+    path('reports/',
+         login_required(TemplateView.as_view(template_name='reports.html')),
+         name='reports'),
+    
+    # Audit Trail
+    path('audit/',
+         login_required(TemplateView.as_view(template_name='audit.html')),
+         name='audit'),
+    
+    # Safety (SAE)
+    path('safety/',
+         login_required(TemplateView.as_view(template_name='safety.html')),
+         name='safety'),
+    
+    # Medical Coding
+    path('coding/',
+         login_required(TemplateView.as_view(template_name='coding.html')),
+         name='coding'),
+    
+    # Security Alerts
+    path('security-alerts/',
+         login_required(TemplateView.as_view(template_name='security-alerts.html')),
+         name='security-alerts'),
+    
+    # Legacy dashboard routes for backwards compatibility
     path('dashboards/role-visibility/', 
-         TemplateView.as_view(template_name='dashboards/role-visibility.html'), 
+         login_required(TemplateView.as_view(template_name='dashboards/role-visibility.html')), 
          name='role-visibility'),
     path('dashboards/frontend-overview/', 
-         TemplateView.as_view(template_name='dashboards/frontend-overview.html'), 
+         login_required(TemplateView.as_view(template_name='dashboards/frontend-overview.html')), 
          name='frontend-overview'),
     
     # Component routes - modular UI components
     path('components/predictions-panel.html', 
-         TemplateView.as_view(template_name='components/predictions-panel.html'), 
+         login_required(TemplateView.as_view(template_name='components/predictions-panel.html')), 
          name='predictions'),
     path('components/blockchain-audit.html', 
-         TemplateView.as_view(template_name='components/blockchain-audit.html'), 
+         login_required(TemplateView.as_view(template_name='components/blockchain-audit.html')), 
          name='blockchain'),
     path('components/genai-assistant.html', 
-         TemplateView.as_view(template_name='components/genai-assistant.html'), 
+         login_required(TemplateView.as_view(template_name='components/genai-assistant.html')), 
          name='genai-assistant'),
 ]
 
@@ -115,3 +177,4 @@ if settings.DEBUG:
     # Serve static files (CSS, JS, images) during development
     # Note: In production, run `collectstatic` and serve via web server
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+

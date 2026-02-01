@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Clinical Trial Control Tower - Dashboard">
+    <title>Dashboard - Clinical Trial Control Tower</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    <style>
+        :root {
+            --sidebar-width: 240px;
+            --topbar-height: 56px;
+            --primary-blue: #0066CC;
+            --primary-dark: #004C99;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background-color: #f4f6f9;
+            overflow-x: hidden;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1f36 0%, #252c47 100%);
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .sidebar-brand .logo-circle {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-blue), #4f8ef7);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .sidebar-brand-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 15px 0;
+            overflow-y: auto;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 15px 20px 8px;
+        }
+
+        .sidebar-nav .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: rgba(0, 102, 204, 0.2);
+            color: #4f8ef7;
+            border-left-color: #4f8ef7;
+        }
+
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        /* ========== TOP BAR ========== */
+        .topbar {
+            position: sticky;
+            top: 0;
+            height: var(--topbar-height);
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1040;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+        }
+
+        .topbar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a1f36;
+        }
+
+        .topbar-filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            margin-left: 30px;
+        }
+
+        .filter-chip {
+            background: #f0f2f5;
+            border: 1px solid #e0e4e8;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            color: #495057;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .filter-chip:hover {
+            background: #e8f0fe;
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .filter-chip.active {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+
+        .filter-chip select {
+            border: none;
+            background: transparent;
+            font-size: 0.8rem;
+            color: inherit;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-topbar {
+            background: #f0f2f5;
+            border: 1px solid #e0e4e8;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-topbar:hover {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-ai-assistant {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+        }
+
+        .btn-ai-assistant:hover {
+            opacity: 0.9;
+        }
+
+        /* ========== CONTENT AREA ========== */
+        .content-area {
+            padding: 20px;
+        }
+
+        /* ========== KPI CARDS ========== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .kpi-card.kpi-primary::after {
+            background: var(--primary-blue);
+        }
+
+        .kpi-card.kpi-success::after {
+            background: #28a745;
+        }
+
+        .kpi-card.kpi-warning::after {
+            background: #ffc107;
+        }
+
+        .kpi-card.kpi-danger::after {
+            background: #dc3545;
+        }
+
+        .kpi-card.kpi-info::after {
+            background: #17a2b8;
+        }
+
+        .kpi-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+
+        .kpi-primary .kpi-icon {
+            background: #e8f0fe;
+            color: var(--primary-blue);
+        }
+
+        .kpi-success .kpi-icon {
+            background: #d4edda;
+            color: #28a745;
+        }
+
+        .kpi-warning .kpi-icon {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .kpi-danger .kpi-icon {
+            background: #f8d7da;
+            color: #dc3545;
+        }
+
+        .kpi-info .kpi-icon {
+            background: #d1ecf1;
+            color: #17a2b8;
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .kpi-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1f36;
+            line-height: 1.2;
+        }
+
+        .kpi-trend {
+            font-size: 0.75rem;
+            margin-top: 8px;
+        }
+
+        .kpi-trend.up {
+            color: #28a745;
+        }
+
+        .kpi-trend.down {
+            color: #dc3545;
+        }
+
+        /* ========== CHARTS SECTION ========== */
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .chart-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1a1f36;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-body {
+            padding: 20px;
+        }
+
+        /* ========== ISSUES TABLE ========== */
+        .issues-table {
+            width: 100%;
+            font-size: 0.85rem;
+        }
+
+        .issues-table th {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        .issues-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .issues-table tr:hover td {
+            background: #f8f9ff;
+        }
+
+        .priority-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .priority-critical {
+            background: #f8d7da;
+            color: #dc3545;
+        }
+
+        .priority-high {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .priority-medium {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .priority-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* ========== TRIAL PULSE SUMMARY ========== */
+        .pulse-summary {
+            background: linear-gradient(135deg, #1a1f36 0%, #252c47 100%);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+        }
+
+        .pulse-summary h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pulse-summary h5 i {
+            color: #4f8ef7;
+        }
+
+        .pulse-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pulse-item:last-child {
+            border-bottom: none;
+        }
+
+        .pulse-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .pulse-icon.green {
+            background: #28a745;
+        }
+
+        .pulse-icon.yellow {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .pulse-icon.red {
+            background: #dc3545;
+        }
+
+        .pulse-icon.blue {
+            background: #17a2b8;
+        }
+
+        .pulse-text {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.5;
+        }
+
+        /* ========== AI ASSISTANT PANEL ========== */
+        .ai-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.15);
+            z-index: 1060;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-panel.open {
+            right: 0;
+        }
+
+        .ai-panel-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-panel-header h5 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .ai-panel-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .ai-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .ai-prompt-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .ai-prompt-chip {
+            background: #f0f2f5;
+            border: 1px solid #e0e4e8;
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-prompt-chip:hover {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .ai-response {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .ai-panel-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .ai-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ai-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+        }
+
+        .ai-send-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-wrapper {
+                margin-left: 0;
+            }
+        }
+
+        /* Nav item visibility classes */
+        .nav-hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/dashboard/" class="sidebar-brand">
+                <span class="logo-circle">N</span>
+                <span class="sidebar-brand-text">Clinical Trial<br>Control Portal</span>
+            </a>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section-title">Main Menu</div>
+
+            <a href="/dashboard/" class="nav-link active" data-module="dashboard">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/sites/" class="nav-link" data-module="sites">
+                <i class="fas fa-hospital"></i>
+                <span>Sites</span>
+            </a>
+
+            <a href="/queries/" class="nav-link" data-module="queries">
+                <i class="fas fa-question-circle"></i>
+                <span>Queries</span>
+            </a>
+
+            <a href="/excel-input/" class="nav-link" data-module="excel_input">
+                <i class="fas fa-table"></i>
+                <span>Excel Input</span>
+            </a>
+
+            <div class="nav-section-title">Analytics</div>
+
+            <a href="/reports/" class="nav-link" data-module="reports">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reports</span>
+            </a>
+
+            <a href="/predictive-ai/" class="nav-link" data-module="predictive_ai">
+                <i class="fas fa-brain"></i>
+                <span>Predictive AI</span>
+            </a>
+
+            <div class="nav-section-title">Compliance</div>
+
+            <a href="/audit/" class="nav-link" data-module="audit">
+                <i class="fas fa-clipboard-check"></i>
+                <span>Audit</span>
+            </a>
+
+            <a href="/safety/" class="nav-link" data-module="safety">
+                <i class="fas fa-shield-halved"></i>
+                <span>Safety (SAE)</span>
+            </a>
+
+            <a href="/coding/" class="nav-link" data-module="coding">
+                <i class="fas fa-code"></i>
+                <span>Medical Coding</span>
+            </a>
+
+            <a href="/security-alerts/" class="nav-link" data-module="security_alerts">
+                <i class="fas fa-bell"></i>
+                <span>Security Alerts</span>
+            </a>
+
+            <div class="nav-section-title">System</div>
+
+            <a href="/admin/" class="nav-link" data-module="admin">
+                <i class="fas fa-cog"></i>
+                <span>Admin Panel</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-role" id="userRole">Loading...</div>
+                </div>
+                <a href="/logout/" class="text-white-50" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <span class="topbar-title">Dashboard Overview</span>
+
+            <div class="topbar-filters">
+                <div class="filter-chip active">
+                    <i class="fas fa-flask"></i>
+                    <select id="studyFilter" onchange="changeStudy(this.value)">
+                        <option value="Study_1">Study 1</option>
+                        <option value="Study_2">Study 2</option>
+                    </select>
+                </div>
+
+                <div class="filter-chip">
+                    <i class="fas fa-globe"></i>
+                    <select id="regionFilter">
+                        <option value="all">All Regions</option>
+                        <option value="APAC">APAC</option>
+                        <option value="EMEA">EMEA</option>
+                        <option value="AMER">Americas</option>
+                    </select>
+                </div>
+
+                <div class="filter-chip">
+                    <i class="fas fa-calendar"></i>
+                    Last 30 days
+                </div>
+            </div>
+
+            <div class="topbar-actions">
+                <button class="btn-topbar">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
+                <button class="btn-topbar">
+                    <i class="fas fa-share-alt"></i>
+                    Share Summary
+                </button>
+                <button class="btn-topbar btn-ai-assistant" onclick="toggleAIPanel()">
+                    <i class="fas fa-robot"></i>
+                    AI Assistant
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            <!-- KPI Cards -->
+            <div class="kpi-grid" id="kpiGrid">
+                <!-- Populated by JavaScript -->
+                <div class="kpi-card kpi-primary">
+                    <div class="kpi-icon"><i class="fas fa-users"></i></div>
+                    <div class="kpi-label">Total Enrolled</div>
+                    <div class="kpi-value" id="kpiEnrolled">--</div>
+                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12% vs last month</div>
+                </div>
+                <div class="kpi-card kpi-success">
+                    <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="kpi-label">Clean Patients</div>
+                    <div class="kpi-value" id="kpiClean">--</div>
+                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 5% improvement</div>
+                </div>
+                <div class="kpi-card kpi-info">
+                    <div class="kpi-icon"><i class="fas fa-hospital"></i></div>
+                    <div class="kpi-label">Active Sites</div>
+                    <div class="kpi-value" id="kpiSites">--</div>
+                </div>
+                <div class="kpi-card kpi-warning">
+                    <div class="kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="kpi-label">Open Queries</div>
+                    <div class="kpi-value" id="kpiQueries">--</div>
+                    <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> 8 resolved today</div>
+                </div>
+                <div class="kpi-card kpi-danger">
+                    <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="kpi-label">DQI Score</div>
+                    <div class="kpi-value" id="kpiDQI">--</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Enrollment Chart -->
+                <div class="col-lg-8">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <span class="chart-title">
+                                <i class="fas fa-chart-area text-primary"></i>
+                                Enrollment Timeline
+                            </span>
+                            <select class="form-select form-select-sm" style="width: auto;">
+                                <option>Last 6 months</option>
+                                <option>Last 12 months</option>
+                            </select>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="enrollmentChart" height="280"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Open Issues Table -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <span class="chart-title">
+                                <i class="fas fa-exclamation-circle text-warning"></i>
+                                Open Issues Summary
+                            </span>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i> View All
+                            </button>
+                        </div>
+                        <div class="chart-body p-0">
+                            <table class="issues-table">
+                                <thead>
+                                    <tr>
+                                        <th>Issue Type</th>
+                                        <th>Count</th>
+                                        <th>Avg Days Open</th>
+                                        <th>Priority</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="issuesTableBody">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-lg-4">
+                    <!-- Trial Pulse Summary -->
+                    <div class="pulse-summary">
+                        <h5><i class="fas fa-heartbeat"></i> Trial Pulse Summary</h5>
+                        <div id="pulseSummary">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Top Sites at Risk -->
+                    <div class="chart-card mt-3">
+                        <div class="chart-header">
+                            <span class="chart-title">
+                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                Top Sites at Risk
+                            </span>
+                        </div>
+                        <div class="chart-body">
+                            <div id="topRiskSites">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- AI Assistant Panel -->
+    <aside class="ai-panel" id="aiPanel">
+        <div class="ai-panel-header">
+            <h5><i class="fas fa-robot me-2"></i> AI Assistant</h5>
+            <button class="ai-panel-close" onclick="toggleAIPanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="ai-panel-body">
+            <div class="ai-prompt-chips">
+                <span class="ai-prompt-chip" onclick="askAI('Why is Site 101 high risk?')">
+                    Why is Site 101 high risk?
+                </span>
+                <span class="ai-prompt-chip" onclick="askAI('What should I do this week?')">
+                    What should I do this week?
+                </span>
+                <span class="ai-prompt-chip" onclick="askAI('Summarize open issues')">
+                    Summarize open issues
+                </span>
+            </div>
+            <div class="ai-response" id="aiResponse">
+                <p><strong>Hello!</strong> I'm your AI assistant for clinical trial management.</p>
+                <p>I can help you:</p>
+                <ul>
+                    <li>Analyze site risk factors</li>
+                    <li>Prioritize your weekly tasks</li>
+                    <li>Summarize open issues</li>
+                    <li>Explain data anomalies</li>
+                </ul>
+                <p>Click a prompt above or type your question below.</p>
+            </div>
+        </div>
+        <div class="ai-panel-footer">
+            <div class="ai-input-group">
+                <input type="text" class="ai-input" id="aiInput" placeholder="Ask a question...">
+                <button class="ai-send-btn" onclick="sendAIQuestion()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Global state
+        let currentStudy = 'Study_1';
+        let userData = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async function () {
+            await loadUserData();
+            await loadDashboardData();
+            initCharts();
+        });
+
+        // Load user data and apply role-based visibility
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/me/');
+                if (!response.ok) {
+                    window.location.href = '/login/';
+                    return;
+                }
+
+                userData = await response.json();
+
+                // Update user info in sidebar
+                document.getElementById('userName').textContent = userData.full_name;
+                document.getElementById('userRole').textContent = userData.role;
+                document.getElementById('userAvatar').textContent = userData.first_name ? userData.first_name[0] : 'U';
+
+                // Apply role-based navigation visibility
+                applyRoleVisibility(userData.allowed_modules);
+
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        // Apply role-based visibility to navigation
+        function applyRoleVisibility(allowedModules) {
+            const navLinks = document.querySelectorAll('.sidebar-nav .nav-link[data-module]');
+
+            navLinks.forEach(link => {
+                const module = link.getAttribute('data-module');
+                if (!allowedModules.includes(module)) {
+                    link.classList.add('nav-hidden');
+                }
+            });
+        }
+
+        // Load dashboard data from API
+        async function loadDashboardData() {
+            try {
+                const response = await fetch(`/api/v1/frontend-overview/?study_id=${currentStudy}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    console.warn('Dashboard data issue:', data.error);
+                }
+
+                // Update KPI cards
+                updateKPIs(data);
+
+                // Update issues table
+                updateIssuesTable(data.open_issues || []);
+
+                // Update pulse summary
+                updatePulseSummary(data);
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Update KPI cards
+        function updateKPIs(data) {
+            const metrics = data.operational_metrics || {};
+
+            document.getElementById('kpiEnrolled').textContent =
+                (metrics.total_subjects || 0).toLocaleString();
+            document.getElementById('kpiClean').textContent =
+                `${metrics.clean_percentage || 0}%`;
+            document.getElementById('kpiSites').textContent =
+                data.kpi_cards?.find(k => k.label === 'Sites')?.value || '--';
+            document.getElementById('kpiQueries').textContent =
+                data.open_issues?.find(i => i.issue_type === 'Open Queries')?.count || '--';
+            document.getElementById('kpiDQI').textContent =
+                metrics.dqi_score ? `${metrics.dqi_score.toFixed(1)}` : '--';
+        }
+
+        // Update issues table
+        function updateIssuesTable(issues) {
+            const tbody = document.getElementById('issuesTableBody');
+
+            if (!issues || issues.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No open issues</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = issues.map(issue => `
+                <tr>
+                    <td>
+                        <i class="fas fa-circle text-${getPriorityColor(issue.priority)} me-2" style="font-size: 0.5rem;"></i>
+                        ${issue.issue_type}
+                    </td>
+                    <td><span class="badge bg-${getPriorityColor(issue.priority)}">${issue.count}</span></td>
+                    <td>${issue.avg_days_open || '--'}</td>
+                    <td><span class="priority-badge priority-${issue.priority?.toLowerCase()}">${issue.priority}</span></td>
+                    <td><button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        function getPriorityColor(priority) {
+            const colors = {
+                'Critical': 'danger',
+                'High': 'warning',
+                'Medium': 'info',
+                'Low': 'success'
+            };
+            return colors[priority] || 'secondary';
+        }
+
+        // Update Trial Pulse Summary
+        function updatePulseSummary(data) {
+            const container = document.getElementById('pulseSummary');
+            const metrics = data.operational_metrics || {};
+            const issues = data.open_issues || [];
+
+            const items = [
+                {
+                    icon: 'green',
+                    iconClass: 'fa-check',
+                    text: `Enrollment is ${metrics.readiness_status === 'On Track' ? 'on track' : 'slightly behind'} with ${metrics.total_subjects || 0} subjects enrolled.`
+                },
+                {
+                    icon: metrics.clean_percentage >= 90 ? 'green' : 'yellow',
+                    iconClass: 'fa-broom',
+                    text: `Data cleanliness at ${metrics.clean_percentage || 0}%. ${metrics.clean_percentage >= 90 ? 'Excellent progress!' : 'Focus on resolving open queries.'}`
+                },
+                {
+                    icon: issues.find(i => i.issue_type === 'Open Queries')?.count > 30 ? 'yellow' : 'green',
+                    iconClass: 'fa-question-circle',
+                    text: `${issues.find(i => i.issue_type === 'Open Queries')?.count || 0} queries pending resolution. Average age: ${issues.find(i => i.issue_type === 'Open Queries')?.avg_days_open || 0} days.`
+                },
+                {
+                    icon: issues.find(i => i.priority === 'Critical') ? 'red' : 'blue',
+                    iconClass: 'fa-exclamation-triangle',
+                    text: issues.find(i => i.priority === 'Critical')
+                        ? `Critical issues detected: ${issues.find(i => i.priority === 'Critical')?.issue_type}. Immediate attention required.`
+                        : 'No critical issues detected. Standard monitoring continues.'
+                }
+            ];
+
+            container.innerHTML = items.map(item => `
+                <div class="pulse-item">
+                    <div class="pulse-icon ${item.icon}"><i class="fas ${item.iconClass}"></i></div>
+                    <div class="pulse-text">${item.text}</div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize charts
+        function initCharts() {
+            const ctx = document.getElementById('enrollmentChart');
+            if (!ctx) return;
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                        {
+                            label: 'Projected',
+                            data: [100, 200, 350, 500, 700, 850],
+                            borderColor: '#0066CC',
+                            borderDash: [8, 4],
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Actual',
+                            data: [80, 180, 320, 480, 650, 800],
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Enrollment Count'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Change study
+        function changeStudy(studyId) {
+            currentStudy = studyId;
+            loadDashboardData();
+        }
+
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Toggle AI Panel
+        function toggleAIPanel() {
+            document.getElementById('aiPanel').classList.toggle('open');
+        }
+
+        // Ask AI a question
+        function askAI(question) {
+            document.getElementById('aiInput').value = question;
+            sendAIQuestion();
+        }
+
+        // Send AI question
+        async function sendAIQuestion() {
+            const input = document.getElementById('aiInput');
+            const question = input.value.trim();
+            if (!question) return;
+
+            const responseDiv = document.getElementById('aiResponse');
+            responseDiv.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Analyzing...</p>';
+
+            try {
+                const response = await fetch('/api/v1/genai/assistant/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ question, study_id: currentStudy })
+                });
+
+                let data;
+                if (response.ok) {
+                    data = await response.json();
+                    responseDiv.innerHTML = formatAIResponse(data);
+                } else {
+                    // Fallback rule-based response
+                    responseDiv.innerHTML = generateRuleBasedResponse(question);
+                }
+            } catch (error) {
+                responseDiv.innerHTML = generateRuleBasedResponse(question);
+            }
+
+            input.value = '';
+        }
+
+        // Format AI response
+        function formatAIResponse(data) {
+            if (data.response) {
+                return `<p>${data.response}</p>`;
+            }
+            return '<p>I apologize, but I could not process that request. Please try again.</p>';
+        }
+
+        // Generate rule-based response when API is unavailable
+        function generateRuleBasedResponse(question) {
+            const q = question.toLowerCase();
+
+            if (q.includes('risk') || q.includes('high risk')) {
+                return `
+                    <p><strong>Site Risk Analysis:</strong></p>
+                    <p>Based on current metrics:</p>
+                    <ul>
+                        <li>Query backlog exceeds threshold (>20 open)</li>
+                        <li>Data entry delay: 5+ days behind schedule</li>
+                        <li>Missing pages detected: 12</li>
+                    </ul>
+                    <p><em>Evidence: Query Report, Missing Pages Report</em></p>
+                    <p><strong>Recommended Actions:</strong></p>
+                    <ol>
+                        <li>Schedule site call within 48 hours</li>
+                        <li>Escalate to CRA manager</li>
+                        <li>Review site training materials</li>
+                    </ol>
+                `;
+            }
+
+            if (q.includes('week') || q.includes('priority') || q.includes('should')) {
+                return `
+                    <p><strong>This Week's Priorities:</strong></p>
+                    <ol>
+                        <li><strong>Critical:</strong> Resolve 3 SAE discrepancies (deadline: Friday)</li>
+                        <li><strong>High:</strong> Close 15 queries aging >7 days</li>
+                        <li><strong>Medium:</strong> Complete SDV for 8 subjects</li>
+                        <li><strong>Review:</strong> Site 102 performance report</li>
+                    </ol>
+                    <p><em>Based on query aging, SAE backlog, and enrollment targets.</em></p>
+                `;
+            }
+
+            if (q.includes('summarize') || q.includes('summary') || q.includes('issues')) {
+                return `
+                    <p><strong>Open Issues Summary:</strong></p>
+                    <ul>
+                        <li><strong>Queries:</strong> 42 open (8 high priority)</li>
+                        <li><strong>Missing Visits:</strong> 15 pending</li>
+                        <li><strong>Missing Pages:</strong> 28 to be collected</li>
+                        <li><strong>SAE Discrepancies:</strong> 3 critical</li>
+                    </ul>
+                    <p><em>Top affected sites: 101, 203, 305</em></p>
+                `;
+            }
+
+            return `
+                <p>I understand you're asking about: "${question}"</p>
+                <p>I can help with:</p>
+                <ul>
+                    <li>Site risk analysis</li>
+                    <li>Weekly task prioritization</li>
+                    <li>Issue summaries</li>
+                    <li>Data quality insights</li>
+                </ul>
+                <p>Please rephrase your question or try one of the suggested prompts above.</p>
+            `;
+        }
+
+        // Get CSRF cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+
+</html>

@@ -72,12 +72,12 @@ class Command(BaseCommand):
 
             # Get SDV completion
             sdv_record = SDVStatus.objects.filter(subject=subject).first()
-            sdv_pct = sdv_record.completion_percentage if sdv_record else 0
+            sdv_pct = float(sdv_record.completion_percentage) if sdv_record else 0
             sdv_incomplete = sdv_pct < 100
 
             # Get PI signature completion
             pi_sig = PISignatureStatus.objects.filter(subject=subject).first()
-            pi_pct = pi_sig.completion_percentage if pi_sig else 0
+            pi_pct = float(pi_sig.completion_percentage) if pi_sig else 0
             pi_incomplete = pi_pct < 100
 
             # Get coding backlog
@@ -170,8 +170,8 @@ class Command(BaseCommand):
             missing_pages_score = min(clean_status.missing_pages_count * 5, 100)
             open_queries_score = min(clean_status.open_queries_count * 3, 100)
             non_conformant_score = min(clean_status.non_conformant_count * 5, 100)
-            sdv_score = 100 - clean_status.sdv_completion_pct
-            pi_sig_score = 100 - clean_status.pi_signature_completion_pct
+            sdv_score = 100 - float(clean_status.sdv_completion_pct or 0)
+            pi_sig_score = 100 - float(clean_status.pi_signature_completion_pct or 0)
             coding_score = min(clean_status.coding_uncoded_count * 2, 100)
             edrr_score = min(clean_status.edrr_open_issue_count * 5, 100)
 

@@ -1,0 +1,34 @@
+{% extends "dashboard.html" %}
+{% load static %}
+
+{# Reports Page - Placeholder #}
+
+{% block title %}Reports - Clinical Trial Control Tower{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="alert alert-success">
+        <i class="fas fa-chart-bar me-2"></i>
+        <strong>Reports</strong> - Generate and view trial reports.
+    </div>
+
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">
+                <i class="fas fa-chart-bar text-success"></i>
+                Available Reports
+            </span>
+        </div>
+        <div class="section-body">
+            <p>Report generation and viewing functionality will be displayed here.</p>
+            <ul>
+                <li>Enrollment Summary Report</li>
+                <li>Data Quality Index Report</li>
+                <li>Site Performance Report</li>
+                <li>Query Aging Report</li>
+                <li>Missing Data Report</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
